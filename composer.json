@@ -1,0 +1,15 @@
+{
+    "name": "tableau-mkt/components_module",
+    "description": "Drupal module, style-guide web component templates as fieldgroups displays",
+    "require": {
+        "zordius/lightncandy": "dev"
+    },
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Tableau Marketing Web Team",
+            "email": "marketing-webteam@tableau.com"
+        }
+    ],
+    "minimum-stability": "dev"
+}
