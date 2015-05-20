@@ -1,0 +1,8 @@
+name = Components API
+description = TODO
+core = 7.x
+dependencies[] = composer_manager
+dependencies[] = ctools
+dependencies[] = field_group
+dependencies[] = entity
+configure = admin/config/components

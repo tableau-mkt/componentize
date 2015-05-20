@@ -1,0 +1,246 @@
+<?php
+/**
+ * @file Style-guide component integration.
+ */
+
+// Handlebars helper.
+use LCRun3\LightnCandy;
+//use Components\Component;
+require('lib/component.php');
+
+define('COMPONENTS_DIRECTORY',    'sites/all/components');
+
+/**
+ * Implements hook_menu().
+ */
+function components_menu() {
+  $items['admin/structure/components'] = array(
+    'title' => 'Components',
+    'description' => 'Configure component structure.',
+    'access arguments' => array('administer components'),
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('components_settings'),
+    'file' => 'components.admin.inc'
+  );
+  return $items;
+}
+
+
+/**
+ * Implements hook_perm().
+ */
+function components_permission() {
+  return array(
+    'administer components' => array(
+      'title' => t('Administer Components'),
+      'description' => t('Configure component entities.')
+    )
+  );
+}
+
+
+/**
+ * Implements hook_ctools_plugin_api().
+ */
+function components_ctools_plugin_api($module, $api) {
+  if ($module == 'field_group' && $api == 'field_group') {
+    return array('version' => 1);
+  }
+}
+
+
+/**
+ * Implements hook_block_info().
+ *
+ * @return array
+ */
+function hook_block_info() {
+  $block_config = variable_get('components_blocks', array());
+  $block_list = array_intersect_key($block_config, _component_list());
+
+  foreach ($block_list as $component) {
+    $attached = array();
+    if ($component->js) {
+      $attached[] = variable_get('components_directory', COMPONENTS_DIRECTORY) .
+          '/' . $component->name . '.js';
+    }
+
+    $blocks['components-' . $component->namespace] = array(
+      'info' => $component->name,
+      '#markup' => mymodule_testblock_content(),
+      'cache' => DRUPAL_NO_CACHE,
+      '#attached' => array('js' => $attached),
+    );
+  }
+
+  return $blocks;
+}
+
+
+/**
+ * Implements hook_theme().
+ */
+function components_theme() {
+  return array(
+    'component_fieldgroup' => array(
+      'render element' => 'element',
+    ),
+  );
+}
+
+
+/**
+ * Returns HTML for a field_group_table_wrapper.
+ */
+function theme_component_fieldgroup($variables) {
+  $components_list = _components_list();
+  $component = $components_list[$variables['element']['#settings']['component']];
+
+dsm('THEME-LAYER');
+dsm($variables);
+
+
+
+  // @todo Lookup field list.
+  $fields = array();
+
+
+
+  foreach ($fields as $field) {
+    // @todo Deal with mulitple values.
+    $data[$field] = $variables['element'][$field]['#items'][0];
+  }
+  $output = $component->render($data);
+
+  // $element = $variables['element'];
+  // $mode = $element['#mode'];
+  // $settings = $element['#settings'];
+
+  // // Allow modules to alter the rows, useful for removing empty rows.
+  // $children = element_children($element, TRUE);
+  // drupal_alter('components_fieldgroup', $element, $children);
+
+  // // Build the table rows.
+  // $rows = array();
+  // foreach ($children as $child) {
+  //   $variables = array(
+  //     'element' => $element[$child],
+  //     'settings' => $settings,
+  //     'mode' => $mode,
+  //   );
+  //   unset($element[$child]);
+
+  //   $rows[] = _field_group_table_row_build($variables);
+  // }
+
+  // $element['#field_group_table']['#rows'] = $rows;
+
+  // $render = array(
+  //   '#theme' => 'container',
+  //   '#attributes' => array(
+  //     'id' => isset($element['#id']) ? $element['#id'] : '',
+  //   ) + $element['#attributes'],
+  // );
+
+  // $render['#children'] = drupal_render($element['#caption']) . "\n";
+  // $render['#children'] .= drupal_render($element['#field_group_table']) . "\n";
+
+  // return drupal_render($render);
+}
+
+
+/**
+ * Provide list of components, via parsing directory or stashed variable.
+ *
+ * @todo Nested components (accordian + accordian item).
+ *
+ * @param boolean $shallow
+ *   Just return a list without full objects (optional).
+ *
+ * @return array
+ */
+function _components_list($shallow = FALSE, $reset = FALSE) {
+  $component_list = &drupal_static(__FUNCTION__ . $shallow);
+
+  // Use the stored variable.
+  if ($component_list) return $component_list;
+
+  // Get the list, try via variable.
+  $component_list = variable_get('components_list', array());
+  if (empty($component_list)) {
+
+    // Crawl folder.
+    $dir = variable_get('components_directory', COMPONENTS_DIRECTORY);
+    if (!$handle = opendir($dir)) {
+      while (FALSE !== ($entry = readdir($handle))) {
+        $component_list[] = $entry;
+      }
+      closedir($handle);
+    }
+    else {
+      $admin_page = l("admin page", 'admin/structure/components');
+      drupal_set_message('Missing components folder. See $admin_page.');
+    }
+
+    variable_set('components_list', $component_list);
+  }
+
+  // Allow adding custom components.
+  drupal_alter('components_list', $component_list, $shallow);
+
+  // Keep it simple.
+  if ($shallow) {
+    return $component_list;
+  }
+
+  // Deeper component data.
+  $configs = array(
+    'module' => 'components',
+    'path' => $dir . '/' . $name,
+    'storage' => variable_get('components_cache', 2),
+  );
+  // @todo Could use module namespacing?
+  foreach ($component_list as $name) {
+    // Return full objects.
+    $component_list[$name] = new Component($name, $configs);
+  }
+
+  return $component_list;
+}
+
+/**
+ * Helper function to parse the components directory
+ */
+
+function components_get_components() {
+
+  $dummy_components = array(
+    'button' => array(
+      'expected_fields' => array('title','description'),
+      'modifiers' => array('cta','red','blue','yellow','small','large'),
+    ),
+    'box' => array(
+      'expected_fields' => array('content'),
+      'modifiers' => array('solid','outline','rounded','double-padding'),
+    ),
+    'badge' => array(
+      'expected_fields' => array('title','number','tagline'),
+      'modifiers' => array('red','blue','yellow','round'),
+    ),
+  );
+
+  $components = array();
+
+  foreach ($dummy_components as $key => $value) {
+    $myComponent = new Component('badge');
+    foreach ($value['expected_fields'] as $field) {
+      $myComponent->addField($field);
+    }
+    foreach ($value['modifiers'] as $modifier) {
+     $myComponent->addModifier($modifier);
+    }
+    $components[] = $myComponent;
+  }
+
+  return $components;
+}

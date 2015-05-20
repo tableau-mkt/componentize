@@ -5,7 +5,14 @@ Drupal module -- directly use style-guide web components (KSS) via Handlebars te
 ## Get Started
 
 ### Basic Install
-1. Use [Composer](https://getcomposer.org/doc/00-intro.md) to manage dependencies.
+1. Install [Composer](https://getcomposer.org/doc/00-intro.md) to manage dependencies.
+1. Ensure you have [Composer Manager](https://www.drupal.org/project/composer_manager). Some helpful [notes](https://www.drupal.org/node/2405805).
+1. Tell composer where to manage vendor code with the follow two variables. Add to your site's settings.php file or use `drush vset`...
+```php
+$conf['composer_manager_vendor_dir'] = 'vendor';
+$conf['composer_manager_file_dir'] = './';
+```
+1. Build your project root composer config: `drush composer-json-rebuild`
 1. Get handlebars integration: `drush composer install`
 1. Create a `/sites/all/components` folder.
 1. Drop in a few [KSS style-guide](http://warpspire.com/kss) web components.

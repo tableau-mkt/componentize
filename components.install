@@ -1,0 +1,23 @@
+<?php
+/**
+ * @file Update hooks and unistall.
+ */
+
+/**
+ * Implements hook_uninstall.
+ */
+function components_unistall() {
+  foreach (array(
+      'components_directory',
+      'components_list',
+      'components_blocks',
+      'components_cache',
+    ) as $var) {
+    variable_del($var);
+  }
+
+  // Delete all stored component variables, if any.
+  foreach (_components_list() as $component) {
+    $component->delete();
+  }
+}

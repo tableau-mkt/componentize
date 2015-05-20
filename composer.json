@@ -1,15 +1,15 @@
 {
-    "name": "tableau-mkt/components_module",
-    "description": "Drupal module, style-guide web component templates as fieldgroups displays",
     "require": {
-        "zordius/lightncandy": "dev"
+        "zordius/lightncandy": "0.21"
     },
-    "license": "MIT",
-    "authors": [
+    "minimum-stability": "dev",
+    "repositories": [
         {
-            "name": "Tableau Marketing Web Team",
-            "email": "marketing-webteam@tableau.com"
+            "type": "vcs",
+            "url": "git@github.com:zordius/lightncandy.git"
         }
     ],
-    "minimum-stability": "dev"
+    "autoload": {
+      "psr-4": {"Component\\": "lib"}
+  }
 }
