@@ -3,12 +3,12 @@
  * @file Style-guide component integration.
  */
 
-// Handlebars helper.
-use LCRun3\LightnCandy;
+use Scan\Kss;
+
 //use Components\Component;
 require('lib/component.php');
 
-define('COMPONENTS_DIRECTORY',    'sites/all/components');
+define('COMPONENTS_DIRECTORY',    'sites/all/styleguide');
 
 /**
  * Implements hook_menu().
@@ -54,27 +54,35 @@ function components_ctools_plugin_api($module, $api) {
  *
  * @return array
  */
-function hook_block_info() {
-  $block_config = variable_get('components_blocks', array());
-  $block_list = array_intersect_key($block_config, _component_list());
+// function components_block_info() {
+//   $block_config = variable_get('components_blocks', array());
+//   $block_list = array_intersect_key($block_config, _component_list());
 
-  foreach ($block_list as $component) {
-    $attached = array();
-    if ($component->js) {
-      $attached[] = variable_get('components_directory', COMPONENTS_DIRECTORY) .
-          '/' . $component->name . '.js';
-    }
+//   foreach ($block_list as $component) {
+//     $attached = array();
+//     if ($component->js) {
+//       $attached[] = variable_get('components_directory', COMPONENTS_DIRECTORY) .
+//           '/' . $component->name . '.js';
+//     }
 
-    $blocks['components-' . $component->namespace] = array(
-      'info' => $component->name,
-      '#markup' => mymodule_testblock_content(),
-      'cache' => DRUPAL_NO_CACHE,
-      '#attached' => array('js' => $attached),
-    );
-  }
+//     $blocks['components-' . $component->namespace] = array(
+//       'info' => $component->name,
+//       '#markup' => _components_block_content($component->name),
+//       'cache' => DRUPAL_NO_CACHE,
+//       '#attached' => array('js' => $attached),
+//     );
+//   }
 
-  return $blocks;
-}
+//   return $blocks;
+// }
+
+
+/**
+ * Generate content of component blocks.
+ */
+// function _components_block_content($name) {
+//   return $name;
+// }
 
 
 /**
@@ -159,54 +167,104 @@ dsm($variables);
  *
  * @return array
  */
-function _components_list($shallow = FALSE, $reset = FALSE) {
-  $component_list = &drupal_static(__FUNCTION__ . $shallow);
+function components_list($shallow = FALSE, $reset = FALSE) {
+  $list = &drupal_static(__FUNCTION__ . $shallow);
+  $dir = variable_get('components_directory', COMPONENTS_DIRECTORY);
 
   // Use the stored variable.
-  if ($component_list) return $component_list;
+  if ($list) return $list;
 
   // Get the list, try via variable.
-  $component_list = variable_get('components_list', array());
-  if (empty($component_list)) {
+  $list = variable_get('components_list', array());
+  if (empty($list)) {
 
-    // Crawl folder.
-    $dir = variable_get('components_directory', COMPONENTS_DIRECTORY);
-    if (!$handle = opendir($dir)) {
-      while (FALSE !== ($entry = readdir($handle))) {
-        $component_list[] = $entry;
-      }
-      closedir($handle);
+    // Parse all styles.
+    $styleguide = new Kss();
+    $styleguide->Parser($dir);
+    // Generate component list, via sections overview.
+    $sections = _components_find_sections();
+    foreach ($sections as $section) {
+      $components = $styleguide->getSectionChildren($section);
+      $list = array_merge($list, $components);
+    }
+    // Store results or complain.
+    if (!empty($list)) {
+      variable_set('components_list', $list);
     }
     else {
-      $admin_page = l("admin page", 'admin/structure/components');
-      drupal_set_message('Missing components folder. See $admin_page.');
+      drupal_set_message('components', 'No web components found.', array(), 'warning');
     }
 
-    variable_set('components_list', $component_list);
   }
 
   // Allow adding custom components.
-  drupal_alter('components_list', $component_list, $shallow);
+  drupal_alter('components_list', $list, $shallow);
 
   // Keep it simple.
-  if ($shallow) {
-    return $component_list;
-  }
+  if ($shallow) return $list;
 
-  // Deeper component data.
+  // Build component objects.
+  if (!$styleguide) {
+    $styleguide = new Kss();
+    $styleguide->Parser($dir);
+  }
   $configs = array(
     'module' => 'components',
-    'path' => $dir . '/' . $name,
-    'storage' => variable_get('components_cache', 2),
+    'path' => variable_get('components_directory', COMPONENTS_DIRECTORY) . '/' . $name,
+    'storage' => variable_get('components_storage', 2),
   );
-  // @todo Could use module namespacing?
-  foreach ($component_list as $name) {
-    // Return full objects.
-    $component_list[$name] = new Component($name, $configs);
+  foreach ($list as $key => $component) {
+    $list[$key] = new Component($component, FALSE, $styleguide);
   }
 
-  return $component_list;
+  return $list;
 }
+
+
+/**
+ * Obtain KSS component sections within folder via "Style guide: boxes.badge" names.
+ *
+ * @return array
+ */
+function _components_find_sections() {
+  $filepath = variable_get('components_directory', COMPONENTS_DIRECTORY) . '_kss_sections.scss';
+  $label = 'Style guide:';
+  $sections = array();
+
+  if ($data = _components_open_file($filepath)) {
+    // Pull names out of the file.
+    foreach (explode($data, '/*') as $section) {
+      $lines = explode($section, "\n");
+      // Add section from last comment line.
+      if (strpos($label) === 0)
+        $sections[] = str_replace($label, '', $sections[$lines[0]]);
+      }
+    }
+
+  }
+
+  return $sections;
+}
+
+
+/**
+ * File opener utility.
+ *
+ * @param string $filename
+ * @return string|boolean
+ */
+private function _components_open_file($filename) {
+  $filepath = variable_get('components_directory', COMPONENTS_DIRECTORY) . '/'. $filename;
+  try {
+    return file_get_contents($filepath);
+  }
+  catch(Exception $e) {
+    drupal_set_message('components', 'Web component file missing: @file',
+        array('@file' => $filepath), WATCHDOG_ERROR);
+    return FALSE;
+  }
+}
+
 
 /**
  * Helper function to parse the components directory

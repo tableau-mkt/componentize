@@ -3,31 +3,37 @@
  * @file Web component object for Drupal, uses Handlebars and SASS.
  */
 
+use Scan\Kss;
+use LCRun3\LightnCandy;
+
 class Component {
 
   public  $name,
-          $namespace,
           $configs,
-          $js,
-          $template,
-          $renderer,
+          $namespace,
+          $markup,
           $variables,
           $modifiers;
 
   /**
    * Constructor.
    */
-  public function __construct($name, $configs) {
+  public function __construct($name, $configs, $styleguide = FALSE) {
     $this->name = $name;
     $this->configs = $configs;
     $this->namespace = $this->configs['module'] . '-' .  $this->$name;
 
+    // Assignment test for styleguide param.
+    if (!$this->styleguide = $styleguide) {
+      $this->styleguide = new Kss();
+      $this->$styleguide->Parser($configs['path']);
+    }
+
+    // Build out component.
     $data = $this->load();
-    $this->template = $data['template'];
-    $this->renderer = $data['renderer'];
+    $this->template = $data['markup'];
     $this->variables = $data['variables'];
     $this->modifiers = $data['modifiers'];
-    $this->js = $data['js'];
   }
 
 
@@ -35,11 +41,14 @@ class Component {
    * Process data via template.
    *
    * @param array $data
+   *   Key value pairs for template variables.
    *
    * @return string
    */
   public function render($data) {
-    return $this->renderer($data);;
+    $handlebar = new LightnCandy();
+    $handle = $handlebar->compile($this->template);
+    return $handle->renderer($data);
   }
 
 
@@ -59,30 +68,33 @@ class Component {
       return $component_data;
     }
 
-    // Variable names in data file.
+    // Variable names within template.
     $data = $this->openFile($this->$name . '.json');
-    $variables = (json_decode($data, TRUE)) ?: array();
+    $variables = array_keys(json_decode($data, TRUE)) ?: array();
 
-    // Modifiers from style file.
-    $data = $this->openFile('_' . $this->$name . '.sass');
-    $modifiers = $this->findModifiers($data);
+    // Modifiers.
+    $modifiers = $this->styleguide->getModifiers();
+    // $data = $this->openFile('_' . $this->$name . '.scss');
+    // @todo Find markup via SASS label (Markup: template.hbs)
+    // $modifiers = $this->findModifiers($data);
 
-    // Template from Handlebars file.
-    $data = $this->openFile($this->$name . '.hbs');
-    $handlebar = new LightnCandy();
+    // Classes.
+    $classes = $modifier->getClassName();
 
-    // Javascript dependency check.
-    $js = file_exists(
-      $this->configs['path'] . '/' . $this->$name . '/' . $this->$name . '.js'
-    );
+    // Custom component javascript dependency check.
+    // $js_filepath = $this->configs['path'] . '/' . $this->$name . '/' . $this->$name . '.js';
+    // if (file_exists($js_filepath)) {
+    //   $js = $js_filepath;
+    // }
 
     // Prepage for storage and retrevial.
     $component_data = array(
-      'template' => $data ?: FALSE,
-      'renderer' => $handlebar->compile($data) ?: FALSE,
-      'variables' => array_keys(drupal_json_decode($variables)),
+      'template' => $section->getMarkup(),
+      //'renderer' => $handlebar->compile($data) ?: FALSE,
+      'variables' => $variables,
       'modifiers' => $modifiers,
-      'js' => $js,
+      'classes' => $classes,
+      //'js' => $js,
     );
     $this->save($component_data);
 
@@ -98,17 +110,17 @@ class Component {
    * @return sting
    *   File contents with line breaks;
    */
-  private function openFile($filename) {
-    $filepath = $this->configs['path'] . '/'. $filename;
-    try {
-      return file_get_contents($filepath);
-    }
-    catch(Exception $e) {
-      drupal_set_message('components', 'Web component file missing: @file',
-          array('@file' => $filepath), WATCHDOG_ERROR);
-      return FALSE;
-    }
-  }
+  // private function openFile($filename) {
+  //   $filepath = $this->configs['path'] . '/'. $filename;
+  //   try {
+  //     return file_get_contents($filepath);
+  //   }
+  //   catch(Exception $e) {
+  //     drupal_set_message('components', 'Web component file missing: @file',
+  //         array('@file' => $filepath), WATCHDOG_ERROR);
+  //     return FALSE;
+  //   }
+  // }
 
 
   /**
@@ -119,20 +131,20 @@ class Component {
    *
    * @return array
    */
-  private function findModifiers($data) {
-    $modifiers = array();
-    foreach (explode("\n", $data) as $line) {
-      if (strpos($line, 'Modifiers:') !== 0) {
-        continue;
-      }
-      if (strpos($line, '.') === 0) {
-        list($class, $description) = explode($line);
-        $modifiers[$class] = $description;
-      }
-    }
+  // private function findModifiers($data) {
+  //   $modifiers = array();
+  //   foreach (explode("\n", $data) as $line) {
+  //     if (strpos($line, 'Modifiers:') !== 0) {
+  //       continue;
+  //     }
+  //     if (strpos($line, '.') === 0) {
+  //       list($class, $description) = explode($line);
+  //       $modifiers[$class] = $description;
+  //     }
+  //   }
 
-    return $modifiers;
-  }
+  //   return $modifiers;
+  // }
 
 
   /**

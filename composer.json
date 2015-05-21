@@ -1,6 +1,7 @@
 {
     "require": {
-        "zordius/lightncandy": "0.21"
+        "zordius/lightncandy": "0.21",
+        "scan/kss-php": "1.0.0"
     },
     "minimum-stability": "dev",
     "repositories": [
