@@ -101,24 +101,24 @@ function components_theme() {
  * Returns HTML for a field_group_table_wrapper.
  */
 function theme_component_fieldgroup($variables) {
-  $components_list = _components_list();
-  $component = $components_list[$variables['element']['#settings']['component']];
-
-dsm('THEME-LAYER');
-dsm($variables);
-
-
+  $component = new Component($variables['element']['#settings']['component']);
+  $component->render(array(
+    'title' => 'RoadShow',
+    'score' => '56',
+  ));
 
   // @todo Lookup field list.
-  $fields = array();
+  $fields = array(
+    'title' => 'RoadShow',
+    'date' => '5-10-15',
+  );
+  //dsm($variables);
+  // foreach ($fields as $field) {
+  //   // @todo Deal with mulitple values.
+  //   $data[$field] = $variables['element'][$field]['#items'][0];
+  // }
 
-
-
-  foreach ($fields as $field) {
-    // @todo Deal with mulitple values.
-    $data[$field] = $variables['element'][$field]['#items'][0];
-  }
-  $output = $component->render($data);
+  $output = $component->render($fields);
 
   // $element = $variables['element'];
   // $mode = $element['#mode'];
