@@ -43,9 +43,10 @@ EOM;
  * Use a component to render code.
  */
 function my_module_block_view() {
-  $component = new Component('badge');
+  $component = new Component('forms.textfield');
   $component->render(array(
-    'title' => 'RoadShow',
-    'score' => '56',
+    'label' => 'First Name',
+    'name' => 'f_name',
+    'placeholder' => 'John Doe',
   ));
 }

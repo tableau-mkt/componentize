@@ -3,7 +3,9 @@
  * @file Web component object for Drupal, uses Handlebars and SASS.
  */
 
-use Scan\Kss;
+namespace Component;
+
+use Scan\Kss\Parser;
 use LCRun3\LightnCandy;
 
 class Component {
@@ -18,16 +20,24 @@ class Component {
   /**
    * Constructor.
    */
-  public function __construct($name, $configs, $styleguide = FALSE) {
+  public function __construct($name, $configs = array(), $styleguide = FALSE) {
     $this->name = $name;
-    $this->configs = $configs;
-    $this->namespace = $this->configs['module'] . '-' .  $this->$name;
 
-    // Assignment test for styleguide param.
-    if (!$this->styleguide = $styleguide) {
-      $this->styleguide = new Kss();
-      $this->$styleguide->Parser($configs['path']);
+    // Honor passed, but ensure a value.
+    $defaults = array(
+      'storage' => variable_get('components_storage', 2),
+      'path' => variable_get('components_directory', COMPONENTS_DIRECTORY),
+      'module' => 'components',
+    );
+    foreach ($defaults as $key => $default) {
+      $configs[$key] = isset($configs[$key]) ? $configs[$key] : $default;
     }
+    $this->configs = $configs;
+
+    // Full storage namespace.
+    $this->namespace = $this->configs['module'] . '-' .  $this->name;
+    // Use a common styleguide parser if provided.
+    $this->styleguide = $styleguide ?: new Parser($this->configs['path']);
 
     // Build out component.
     $data = $this->load();
@@ -68,13 +78,15 @@ class Component {
       return $component_data;
     }
 
+    $section = $this->styleguide->getSection($this->name);
+
     // Variable names within template.
-    $data = $this->openFile($this->$name . '.json');
+    $data = $this->openComponent($this->name . '.json');
     $variables = array_keys(json_decode($data, TRUE)) ?: array();
 
     // Modifiers.
-    $modifiers = $this->styleguide->getModifiers();
-    // $data = $this->openFile('_' . $this->$name . '.scss');
+    $modifiers = $section->getModifiers();
+    // $data = $this->openFile('_' . $this->name . '.scss');
     // @todo Find markup via SASS label (Markup: template.hbs)
     // $modifiers = $this->findModifiers($data);
 
@@ -82,7 +94,7 @@ class Component {
     $classes = $modifier->getClassName();
 
     // Custom component javascript dependency check.
-    // $js_filepath = $this->configs['path'] . '/' . $this->$name . '/' . $this->$name . '.js';
+    // $js_filepath = $this->configs['path'] . '/' . $this->name . '/' . $this->name . '.js';
     // if (file_exists($js_filepath)) {
     //   $js = $js_filepath;
     // }
@@ -110,17 +122,17 @@ class Component {
    * @return sting
    *   File contents with line breaks;
    */
-  // private function openFile($filename) {
-  //   $filepath = $this->configs['path'] . '/'. $filename;
-  //   try {
-  //     return file_get_contents($filepath);
-  //   }
-  //   catch(Exception $e) {
-  //     drupal_set_message('components', 'Web component file missing: @file',
-  //         array('@file' => $filepath), WATCHDOG_ERROR);
-  //     return FALSE;
-  //   }
-  // }
+  private function openComponent($filename) {
+    $filepath = $this->configs['path'] . '/components/'. $filename;
+    try {
+      return file_get_contents($filepath);
+    }
+    catch(Exception $e) {
+      drupal_set_message('components', 'Web component file missing: @file',
+          array('@file' => $filepath), WATCHDOG_ERROR);
+      return FALSE;
+    }
+  }
 
 
   /**
@@ -163,10 +175,6 @@ class Component {
       case 1:
         cache_set($this->namespace, $data);
         break;
-
-      default:
-        return FALSE;
-        break;
     }
   }
 
@@ -176,18 +184,18 @@ class Component {
    *
    * @todo Retrieve as entities.
    */
-  private function retreive() {
+  private function retrieve() {
     switch ($this->configs['storage']) {
       case 2:
-        variable_get($this->namespace, $data);
+        variable_get($this->namespace, array());
         break;
 
       case 1:
-        cache_get($this->namespace, $data);
+        cache_get($this->namespace, array());
         break;
 
       default:
-        return FALSE;
+        return array();
         break;
     }
   }

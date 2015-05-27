@@ -3,12 +3,13 @@
  * @file Style-guide component integration.
  */
 
-use Scan\Kss;
+use Component\Component;
+use Scan\Kss\Parser;
 
 //use Components\Component;
 require('lib/component.php');
 
-define('COMPONENTS_DIRECTORY',    'sites/all/styleguide');
+define('COMPONENTS_DIRECTORY', 'sites/all/kss');
 
 /**
  * Implements hook_menu().
@@ -179,7 +180,7 @@ function components_list($shallow = FALSE, $reset = FALSE) {
   if (empty($list)) {
 
     // Parse all styles.
-    $styleguide = new Kss();
+    $styleguide = new Parser();
     $styleguide->Parser($dir);
     // Generate component list, via sections overview.
     $sections = _components_find_sections();
@@ -205,16 +206,10 @@ function components_list($shallow = FALSE, $reset = FALSE) {
 
   // Build component objects.
   if (!$styleguide) {
-    $styleguide = new Kss();
-    $styleguide->Parser($dir);
+    $styleguide = new Parser($dir);
   }
-  $configs = array(
-    'module' => 'components',
-    'path' => variable_get('components_directory', COMPONENTS_DIRECTORY) . '/' . $name,
-    'storage' => variable_get('components_storage', 2),
-  );
   foreach ($list as $key => $component) {
-    $list[$key] = new Component($component, FALSE, $styleguide);
+    $list[$key] = new Component($component, $configs, $styleguide);
   }
 
   return $list;
@@ -236,7 +231,7 @@ function _components_find_sections() {
     foreach (explode($data, '/*') as $section) {
       $lines = explode($section, "\n");
       // Add section from last comment line.
-      if (strpos($label) === 0)
+      if (strpos($label) === 0) {
         $sections[] = str_replace($label, '', $sections[$lines[0]]);
       }
     }
@@ -253,7 +248,7 @@ function _components_find_sections() {
  * @param string $filename
  * @return string|boolean
  */
-private function _components_open_file($filename) {
+function _components_open_file($filename) {
   $filepath = variable_get('components_directory', COMPONENTS_DIRECTORY) . '/'. $filename;
   try {
     return file_get_contents($filepath);
