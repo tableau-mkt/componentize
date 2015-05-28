@@ -34,18 +34,31 @@ This module allows you to refer to components and render content through Handleb
 ```php
 function my_module_block_view() {
   // Refer to an existing component.
-  $component = new Component('forms.textfield');
-  $component->setModifier('');
+  $component = new Component('fancy.thing');
+  $component->setModifier(variable_get('my_module_fancything_modifier', ''));
   // Render data from the CMS through handlebars.
   $component->render(array(
-    'label' => 'First Name',
-    'name' => 'f_name',
-    'placeholder' => 'John Doe',
+    'id' => 'fancyThingOne',
+    'button' => 'OMG',
+    'placeholder' => 'Helpful text',
+    'description' => 'Who knows what it will do?!'
   ));
 }
+```
 
 ```html
-<div class="textfield {{modifier_class}}">
-  <input class="textfield__input" name="{{}}">
+<div class="fancy-thing {{modifier_class}}">
+  <input type="text" class="fancy-thing__input" id="{{id}}" placeholder="{{placeholder}}">
+  <button class="fancy-thing__button" type="button">{{button}}</button>
+  <p class="fancy-thing__desc">{{description}}</p>
 </div>
 ```
+
+Here's a more practical example...
+
+function my_module_search_form_alter(&$form, &$form_state, $form_id) {
+  $component = new Component('forms.search');
+
+  $component->
+
+}

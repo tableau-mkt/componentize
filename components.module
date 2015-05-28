@@ -9,7 +9,7 @@ use Scan\Kss\Parser;
 //use Components\Component;
 require('lib/component.php');
 
-define('COMPONENTS_DIRECTORY', 'sites/all/kss');
+define('COMPONENTS_DIRECTORY', 'sites/all/components');
 
 /**
  * Implements hook_menu().
@@ -51,6 +51,18 @@ function components_ctools_plugin_api($module, $api) {
 
 
 /**
+ * Implements hook_theme().
+ */
+function components_theme() {
+  return array(
+    'component_fieldgroup' => array(
+      'render element' => 'element',
+    ),
+  );
+}
+
+
+/**
  * Implements hook_block_info().
  *
  * @return array
@@ -87,74 +99,37 @@ function components_ctools_plugin_api($module, $api) {
 
 
 /**
- * Implements hook_theme().
- */
-function components_theme() {
-  return array(
-    'component_fieldgroup' => array(
-      'render element' => 'element',
-    ),
-  );
-}
-
-
-/**
  * Returns HTML for a field_group_table_wrapper.
  */
 function theme_component_fieldgroup($variables) {
-  $component = new Component($variables['element']['#settings']['component']);
-  $component->render(array(
-    'title' => 'RoadShow',
-    'score' => '56',
-  ));
+  // Only generate styleguide once.
+  $styleguide = &drupal_static(__FUNCTION__);
+  if (!isset($styleguide)) {
+    $dir = variable_get('components_directory', COMPONENTS_DIRECTORY);
+    $styleguide = new Parser($dir);
+  }
 
-  // @todo Lookup field list.
-  $fields = array(
-    'title' => 'RoadShow',
-    'date' => '5-10-15',
-  );
-  //dsm($variables);
-  // foreach ($fields as $field) {
-  //   // @todo Deal with mulitple values.
-  //   $data[$field] = $variables['element'][$field]['#items'][0];
-  // }
+  // Find variables in fields.
+  $templateVars = array();
+  $elm = $variables['element'];
+  foreach ($elm['#children'] as $field) {
+    // Multi-value.
+    if (count($elm[$field]['#items']) > 1) {
+      $templateVars[$field] = array();
+      foreach ($elm[$field]['#items'] as $value) {
+        $templateVars[$field][] = $value['safe_value'];
+      }
+    }
+    else {
+      $templateVars[$field] = $elm[$field]['#items'][0]['safe_value'];
+    }
+  }
 
-  $output = $component->render($fields);
+  // Pass data through template.
+  $componentName = 'buttons.cta'; //$variables['element']['#settings']['component']
+  $component = new Component($componentName, array(), $styleguide);
 
-  // $element = $variables['element'];
-  // $mode = $element['#mode'];
-  // $settings = $element['#settings'];
-
-  // // Allow modules to alter the rows, useful for removing empty rows.
-  // $children = element_children($element, TRUE);
-  // drupal_alter('components_fieldgroup', $element, $children);
-
-  // // Build the table rows.
-  // $rows = array();
-  // foreach ($children as $child) {
-  //   $variables = array(
-  //     'element' => $element[$child],
-  //     'settings' => $settings,
-  //     'mode' => $mode,
-  //   );
-  //   unset($element[$child]);
-
-  //   $rows[] = _field_group_table_row_build($variables);
-  // }
-
-  // $element['#field_group_table']['#rows'] = $rows;
-
-  // $render = array(
-  //   '#theme' => 'container',
-  //   '#attributes' => array(
-  //     'id' => isset($element['#id']) ? $element['#id'] : '',
-  //   ) + $element['#attributes'],
-  // );
-
-  // $render['#children'] = drupal_render($element['#caption']) . "\n";
-  // $render['#children'] .= drupal_render($element['#field_group_table']) . "\n";
-
-  // return drupal_render($render);
+  return $component->render($templateVars);
 }
 
 
@@ -168,25 +143,22 @@ function theme_component_fieldgroup($variables) {
  *
  * @return array
  */
-function components_list($shallow = FALSE, $reset = FALSE) {
+function _components_list($shallow = FALSE, $reset = FALSE) {
   $list = &drupal_static(__FUNCTION__ . $shallow);
   $dir = variable_get('components_directory', COMPONENTS_DIRECTORY);
 
   // Use the stored variable.
-  if ($list) return $list;
+  if (isset($list)) return $list;
 
   // Get the list, try via variable.
   $list = variable_get('components_list', array());
   if (empty($list)) {
-
     // Parse all styles.
-    $styleguide = new Parser();
-    $styleguide->Parser($dir);
-    // Generate component list, via sections overview.
-    $sections = _components_find_sections();
+    $styleguide = new Parser($dir);
+    $sections =  $styleguide->getSections();
     foreach ($sections as $section) {
-      $components = $styleguide->getSectionChildren($section);
-      $list = array_merge($list, $components);
+      $components = $styleguide->getSectionChildren($section->getTitle());
+      $list[] = array_keys($components);
     }
     // Store results or complain.
     if (!empty($list)) {
@@ -195,7 +167,6 @@ function components_list($shallow = FALSE, $reset = FALSE) {
     else {
       drupal_set_message('components', 'No web components found.', array(), 'warning');
     }
-
   }
 
   // Allow adding custom components.
@@ -206,58 +177,14 @@ function components_list($shallow = FALSE, $reset = FALSE) {
 
   // Build component objects.
   if (!$styleguide) {
+    // If just the list existed already create a common styleguide object.
     $styleguide = new Parser($dir);
   }
   foreach ($list as $key => $component) {
-    $list[$key] = new Component($component, $configs, $styleguide);
+    $list[$key] = new Component($component, array(), $styleguide);
   }
 
   return $list;
-}
-
-
-/**
- * Obtain KSS component sections within folder via "Style guide: boxes.badge" names.
- *
- * @return array
- */
-function _components_find_sections() {
-  $filepath = variable_get('components_directory', COMPONENTS_DIRECTORY) . '_kss_sections.scss';
-  $label = 'Style guide:';
-  $sections = array();
-
-  if ($data = _components_open_file($filepath)) {
-    // Pull names out of the file.
-    foreach (explode($data, '/*') as $section) {
-      $lines = explode($section, "\n");
-      // Add section from last comment line.
-      if (strpos($label) === 0) {
-        $sections[] = str_replace($label, '', $sections[$lines[0]]);
-      }
-    }
-
-  }
-
-  return $sections;
-}
-
-
-/**
- * File opener utility.
- *
- * @param string $filename
- * @return string|boolean
- */
-function _components_open_file($filename) {
-  $filepath = variable_get('components_directory', COMPONENTS_DIRECTORY) . '/'. $filename;
-  try {
-    return file_get_contents($filepath);
-  }
-  catch(Exception $e) {
-    drupal_set_message('components', 'Web component file missing: @file',
-        array('@file' => $filepath), WATCHDOG_ERROR);
-    return FALSE;
-  }
 }
 
 

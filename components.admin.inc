@@ -20,15 +20,15 @@ function components_settings() {
     ),
 
     'components_storage' => array(
-      '#type' => 'checkbox',
+      '#type' => 'select',
       '#options' => drupal_map_assoc(array(
-        0 => t('Full'),
-        1 => t('Less'),
-        2 => t('None'),
+        0 => t('Full - Variable'),
+        1 => t('Less - Cache'),
+        2 => t('None - Files'),
       )),
       '#title' => 'Config storage',
       '#description' => t('Avoid regenerating with less aggresive caching. Data will be stored in either: variables, cache or regenerated on every page load.'),
-      '#default_value' => variable_get('components_storage', array()),
+      '#default_value' => variable_get('components_storage', 1),
     ),
   );
 

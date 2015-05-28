@@ -6,14 +6,14 @@
 namespace Component;
 
 use Scan\Kss\Parser;
-use LCRun3\LightnCandy;
+use LightnCandy;
 
 class Component {
 
-  public  $name,
+  private $name,
           $configs,
           $namespace,
-          $markup,
+          $template,
           $variables,
           $modifiers;
 
@@ -23,25 +23,22 @@ class Component {
   public function __construct($name, $configs = array(), $styleguide = FALSE) {
     $this->name = $name;
 
-    // Honor passed, but ensure a value.
-    $defaults = array(
-      'storage' => variable_get('components_storage', 2),
+    // Honor passed, provide a default.
+    $this->configs = $configs + array(
       'path' => variable_get('components_directory', COMPONENTS_DIRECTORY),
+      'storage' => variable_get('components_storage', 1),
       'module' => 'components',
     );
-    foreach ($defaults as $key => $default) {
-      $configs[$key] = isset($configs[$key]) ? $configs[$key] : $default;
-    }
-    $this->configs = $configs;
 
     // Full storage namespace.
     $this->namespace = $this->configs['module'] . '-' .  $this->name;
     // Use a common styleguide parser if provided.
+    // @todo Share the styleguide between instances.
     $this->styleguide = $styleguide ?: new Parser($this->configs['path']);
 
     // Build out component.
     $data = $this->load();
-    $this->template = $data['markup'];
+    $this->template = $data['template'];
     $this->variables = $data['variables'];
     $this->modifiers = $data['modifiers'];
   }
@@ -56,9 +53,23 @@ class Component {
    * @return string
    */
   public function render($data) {
-    $handlebar = new LightnCandy();
-    $handle = $handlebar->compile($this->template);
-    return $handle->renderer($data);
+    // Double check folder.
+    $path = 'public://components';
+    if (!file_prepare_directory($path, FILE_CREATE_DIRECTORY | FILE_MODIFY_PERMISSIONS)) {
+      drupal_set_message(t('Unable to create Components template cache directory. Check the permissions on your files directory.'), 'error');
+      return;
+    }
+
+    // Stash compiled (PHP) version of template.
+    // @todo Allow for private files.
+    $filepath = 'public://components/' . $this->namespace . '.php';
+    if (!file_exists($filepath)) {
+      $handlebar = new LightnCandy();
+      $compiled = $handlebar->compile($this->template);
+      file_unmanaged_save_data($compiled, $filepath, FILE_EXISTS_REPLACE);
+    }
+    $renderer = include($filepath);
+    return $renderer($data);
   }
 
 
@@ -79,21 +90,24 @@ class Component {
     }
 
     $section = $this->styleguide->getSection($this->name);
+    $shortName = end(explode('.', $this->name));
 
     // Variable names within template.
-    $data = $this->openComponent($this->name . '.json');
+    $data = $this->openComponent($shortName . '/' . $shortName . '.json');
     $variables = array_keys(json_decode($data, TRUE)) ?: array();
 
     // Modifiers.
+    $section = $this->styleguide->getSection($this->name);
     $modifiers = $section->getModifiers();
-    // $data = $this->openFile('_' . $this->name . '.scss');
-    // @todo Find markup via SASS label (Markup: template.hbs)
-    // $modifiers = $this->findModifiers($data);
 
     // Classes.
-    $classes = $modifier->getClassName();
+    //$classes = $section->getClassName();
 
-    // Custom component javascript dependency check.
+    // Template.
+    //$section->getMarkup();
+    $template = $this->openComponent($shortName . '/' . $shortName . '.hbs');
+
+    // Javascript dependency.
     // $js_filepath = $this->configs['path'] . '/' . $this->name . '/' . $this->name . '.js';
     // if (file_exists($js_filepath)) {
     //   $js = $js_filepath;
@@ -101,11 +115,11 @@ class Component {
 
     // Prepage for storage and retrevial.
     $component_data = array(
-      'template' => $section->getMarkup(),
+      'template' => $template ?: '',
       //'renderer' => $handlebar->compile($data) ?: FALSE,
       'variables' => $variables,
       'modifiers' => $modifiers,
-      'classes' => $classes,
+      //'classes' => $classes,
       //'js' => $js,
     );
     $this->save($component_data);
@@ -123,7 +137,7 @@ class Component {
    *   File contents with line breaks;
    */
   private function openComponent($filename) {
-    $filepath = $this->configs['path'] . '/components/'. $filename;
+    $filepath = $this->configs['path'] . '/'. $filename;
     try {
       return file_get_contents($filepath);
     }
@@ -133,30 +147,6 @@ class Component {
       return FALSE;
     }
   }
-
-
-  /**
-   * Discover modifiers from style file.
-   *
-   * @param  $data
-   *   Contents of the file.
-   *
-   * @return array
-   */
-  // private function findModifiers($data) {
-  //   $modifiers = array();
-  //   foreach (explode("\n", $data) as $line) {
-  //     if (strpos($line, 'Modifiers:') !== 0) {
-  //       continue;
-  //     }
-  //     if (strpos($line, '.') === 0) {
-  //       list($class, $description) = explode($line);
-  //       $modifiers[$class] = $description;
-  //     }
-  //   }
-
-  //   return $modifiers;
-  // }
 
 
   /**
@@ -187,26 +177,16 @@ class Component {
   private function retrieve() {
     switch ($this->configs['storage']) {
       case 2:
-        variable_get($this->namespace, array());
+        variable_get($this->namespace);
         break;
 
       case 1:
-        cache_get($this->namespace, array());
+        cache_get($this->namespace);
         break;
 
       default:
         return array();
         break;
     }
-  }
-
-
-  /**
-   * Set: Remove all stored records.
-   *
-   * @todo Delete entities.
-   */
-  private function delete() {
-    variable_del($this->namespace, $data);
   }
 }
