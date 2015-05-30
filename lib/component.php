@@ -5,36 +5,30 @@
 
 namespace Component;
 
-use Scan\Kss\Parser;
 use LightnCandy;
+
 
 class Component {
 
-  private $name,
-          $configs,
+  public  $name;
+
+  private $configs,
+          $styleguide,
           $namespace,
+          $modifiers,
           $template,
-          $variables,
-          $modifiers;
+          $variables;
 
   /**
    * Constructor.
    */
-  public function __construct($name, $configs = array(), $styleguide = FALSE) {
+  public function __construct($name, $configs, $styleguide) {
     $this->name = $name;
-
-    // Honor passed, provide a default.
-    $this->configs = $configs + array(
-      'path' => variable_get('components_directory', COMPONENTS_DIRECTORY),
-      'storage' => variable_get('components_storage', 1),
-      'module' => 'components',
-    );
+    $this->configs = $configs;
+    $this->styleguide = $styleguide;
 
     // Full storage namespace.
     $this->namespace = $this->configs['module'] . '-' .  $this->name;
-    // Use a common styleguide parser if provided.
-    // @todo Share the styleguide between instances.
-    $this->styleguide = $styleguide ?: new Parser($this->configs['path']);
 
     // Build out component.
     $data = $this->load();
@@ -74,6 +68,26 @@ class Component {
 
 
   /**
+   * Retrieve list of modifiers.
+   *
+   * @return array
+   */
+  public function getModifiers() {
+    return $this->modifiers;
+  }
+
+
+  /**
+   * Retrieve list of variables.
+   *
+   * @return array
+   */
+  public function getVariables() {
+    return $this->variables;
+  }
+
+
+  /**
    * Provide data about this component.
    *
    * @param string $path
@@ -92,9 +106,11 @@ class Component {
     $section = $this->styleguide->getSection($this->name);
     $shortName = end(explode('.', $this->name));
 
-    // Variable names within template.
-    $data = $this->openComponent($shortName . '/' . $shortName . '.json');
-    $variables = array_keys(json_decode($data, TRUE)) ?: array();
+    // Variable names within template (assignment test).
+    $variables = array();
+    if ($data = $this->openComponent($shortName . '/' . $shortName . '.json')) {
+      $variables = array_keys(json_decode($data, TRUE)) ?: array();
+    }
 
     // Modifiers.
     $section = $this->styleguide->getSection($this->name);
@@ -188,5 +204,15 @@ class Component {
         return array();
         break;
     }
+  }
+
+
+  /**
+  * Set: Remove all stored records.
+  *
+  * @todo Delete entities.
+  */
+  private function delete() {
+   variable_del($this->namespace, $data);
   }
 }

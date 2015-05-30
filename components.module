@@ -3,7 +3,7 @@
  * @file Style-guide component integration.
  */
 
-use Component\Component;
+use Component\ComponentFactory;
 use Scan\Kss\Parser;
 
 //use Components\Component;
@@ -36,28 +36,6 @@ function components_permission() {
       'title' => t('Administer Components'),
       'description' => t('Configure component entities.')
     )
-  );
-}
-
-
-/**
- * Implements hook_ctools_plugin_api().
- */
-function components_ctools_plugin_api($module, $api) {
-  if ($module == 'field_group' && $api == 'field_group') {
-    return array('version' => 1);
-  }
-}
-
-
-/**
- * Implements hook_theme().
- */
-function components_theme() {
-  return array(
-    'component_fieldgroup' => array(
-      'render element' => 'element',
-    ),
   );
 }
 
@@ -99,41 +77,6 @@ function components_theme() {
 
 
 /**
- * Returns HTML for a field_group_table_wrapper.
- */
-function theme_component_fieldgroup($variables) {
-  // Only generate styleguide once.
-  $styleguide = &drupal_static(__FUNCTION__);
-  if (!isset($styleguide)) {
-    $dir = variable_get('components_directory', COMPONENTS_DIRECTORY);
-    $styleguide = new Parser($dir);
-  }
-
-  // Find variables in fields.
-  $templateVars = array();
-  $elm = $variables['element'];
-  foreach ($elm['#children'] as $field) {
-    // Multi-value.
-    if (count($elm[$field]['#items']) > 1) {
-      $templateVars[$field] = array();
-      foreach ($elm[$field]['#items'] as $value) {
-        $templateVars[$field][] = $value['safe_value'];
-      }
-    }
-    else {
-      $templateVars[$field] = $elm[$field]['#items'][0]['safe_value'];
-    }
-  }
-
-  // Pass data through template.
-  $componentName = 'buttons.cta'; //$variables['element']['#settings']['component']
-  $component = new Component($componentName, array(), $styleguide);
-
-  return $component->render($templateVars);
-}
-
-
-/**
  * Provide list of components, via parsing directory or stashed variable.
  *
  * @todo Nested components (accordian + accordian item).
@@ -145,6 +88,7 @@ function theme_component_fieldgroup($variables) {
  */
 function _components_list($shallow = FALSE, $reset = FALSE) {
   $list = &drupal_static(__FUNCTION__ . $shallow);
+  $styleguide = &drupal_static(__FUNCTION__);
   $dir = variable_get('components_directory', COMPONENTS_DIRECTORY);
 
   // Use the stored variable.
@@ -158,7 +102,7 @@ function _components_list($shallow = FALSE, $reset = FALSE) {
     $sections =  $styleguide->getSections();
     foreach ($sections as $section) {
       $components = $styleguide->getSectionChildren($section->getTitle());
-      $list[] = array_keys($components);
+      $list = array_merge($list, array_keys($components));
     }
     // Store results or complain.
     if (!empty($list)) {
@@ -176,51 +120,11 @@ function _components_list($shallow = FALSE, $reset = FALSE) {
   if ($shallow) return $list;
 
   // Build component objects.
-  if (!$styleguide) {
-    // If just the list existed already create a common styleguide object.
-    $styleguide = new Parser($dir);
-  }
+  $list_full = array();
+  $factory = new ComponentFactory;
   foreach ($list as $key => $component) {
-    $list[$key] = new Component($component, array(), $styleguide);
+    $list_full[$component] = $factory->create($component, array());
   }
 
-  return $list;
-}
-
-
-/**
- * Helper function to parse the components directory
- */
-
-function components_get_components() {
-
-  $dummy_components = array(
-    'button' => array(
-      'expected_fields' => array('title','description'),
-      'modifiers' => array('cta','red','blue','yellow','small','large'),
-    ),
-    'box' => array(
-      'expected_fields' => array('content'),
-      'modifiers' => array('solid','outline','rounded','double-padding'),
-    ),
-    'badge' => array(
-      'expected_fields' => array('title','number','tagline'),
-      'modifiers' => array('red','blue','yellow','round'),
-    ),
-  );
-
-  $components = array();
-
-  foreach ($dummy_components as $key => $value) {
-    $myComponent = new Component('badge');
-    foreach ($value['expected_fields'] as $field) {
-      $myComponent->addField($field);
-    }
-    foreach ($value['modifiers'] as $modifier) {
-     $myComponent->addModifier($modifier);
-    }
-    $components[] = $myComponent;
-  }
-
-  return $components;
+  return $list_full;
 }

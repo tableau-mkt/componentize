@@ -53,12 +53,3 @@ function my_module_block_view() {
   <p class="fancy-thing__desc">{{description}}</p>
 </div>
 ```
-
-Here's a more practical example...
-
-function my_module_search_form_alter(&$form, &$form_state, $form_id) {
-  $component = new Component('forms.search');
-
-  $component->
-
-}

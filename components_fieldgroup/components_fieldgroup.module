@@ -1,0 +1,159 @@
+<?php
+/**
+ * @file Use components with fieldgroups.
+ */
+
+use Component\ComponentFactory;
+
+/**
+ * Implements hook_ctools_plugin_api().
+ */
+function components_fieldgroup_ctools_plugin_api($module, $api) {
+  if ($module == 'field_group' && $api == 'field_group') {
+    return array('version' => 1);
+  }
+}
+
+
+/**
+ * Implements hook_theme().
+ */
+function components_fieldgroup_theme() {
+  return array(
+    'components_fieldgroup' => array(
+      'render element' => 'element',
+    ),
+  );
+}
+
+
+/**
+ * Implements hook_field_formatter_info_alter().
+ */
+function components_fieldgroup_field_formatter_info_alter(&$info) {
+  // Add custom setting for fields within fieldgroups.
+  // @todo Add more field display types.
+  $types = array(
+    'text_default',
+    'text_plain',
+    'number_integer',
+    'text_trimmed',
+  );
+  foreach ($types as $type) {
+    $info[$type]['settings'] += array(
+      'components_fieldgroup_variable_name' => '',
+    );
+  }
+}
+
+
+/**
+ * Implements hook_field_formatter_settings_form_alter().
+ */
+function components_fieldgroup_field_formatter_settings_form_alter(&$settings_form, $context) {
+  $display = $context['instance']['display'][$context['view_mode']];
+  $settings = $display['settings'];
+  $field_name = $context['instance']['field_name'];
+  // @todo Carefully confirm there is a fieldgroup set.
+  $parent_group = $context['form_state']['input']['fields'][$field_name]['parent'];
+  $group_settings = $context['form_state']['field_group'][$parent_group]->format_settings['instance_settings'];
+
+  switch ($display['type']) {
+    case 'text_default':
+    case 'text_plain':
+    case 'number_integer':
+
+      // Use configured compontent.
+      if (isset($group_settings['component'])) {
+        $factory = new ComponentFactory;
+        $component = $factory->create($group_settings['component']);
+        // Choose from registered variables.
+        $settings_form['components_fieldgroup_variable_name'] = array(
+          '#title' => t('Variable'),
+          '#type' => 'select',
+          '#options' => drupal_map_assoc($component->getVariables()),
+          '#default_value' => $settings['components_fieldgroup_variable_name'],
+          '#element_validate' => array('components_fieldgroup_validate_variable'),
+          '#required' => TRUE,
+        );
+      }
+      break;
+  }
+}
+
+
+/**
+ * Validation for variable settings.
+ */
+function components_fieldgroup_validate_variable($element, &$form_state, $form) {
+  if (!ctype_alnum($element['#value'])) {
+    form_error($element, t('This field must be alphanumeric.'));
+  }
+}
+
+
+/**
+ * Implements hook_field_formatter_settings_summary().
+ */
+function components_fieldgroup_field_formatter_settings_summary_alter(&$summary, $context) {
+  $display = $context['instance']['display'][$context['view_mode']];
+  $settings = $display['settings'];
+
+  // @todo Only for fields within fieldgroups format_type 'components_fieldgroup'.
+
+  switch ($display['type']) {
+    case 'text_default':
+    case 'text_plain':
+    case 'number_integer':
+      if (isset($settings['components_fieldgroup_variable_name'])) {
+        if (!empty($summary)) {
+          $summary .= '<br />';
+        }
+
+        if ($settings['components_fieldgroup_variable_name']) {
+          $summary .= t('Map to "@variable" template variable', array(
+            '@variable' => $settings['components_fieldgroup_variable_name'],
+          ));
+        }
+        else {
+          $summary .= t('No template variable mapped yet!');
+        }
+      }
+
+      break;
+  }
+}
+
+
+/**
+ * Returns HTML for a field_group_table_wrapper.
+ */
+function theme_components_fieldgroup($variables) {
+  // Find variables in fields.
+  $template_vars = array();
+  $elm = $variables['element'];
+  foreach ($elm['#children'] as $field) {
+    if (count($elm[$field]['#items']) > 1) {
+      // Multi-value.
+      $template_vars[$field] = array();
+      foreach ($elm[$field]['#items'] as $value) {
+        $template_vars[$field][] = $value['safe_value'];
+      }
+    }
+    else {
+      $template_vars[$field] = $elm[$field]['#items'][0]['safe_value'];
+    }
+  }
+
+  // Pass data through template.
+  $component_name = 'buttons.cta'; //$variables['element']['#settings']['component']
+  $factory = new ComponentFactory;
+  $component = $factory->create($component_name);
+
+
+  // @todo Get mapping from field settings within group.
+dsm($variables);
+
+
+  return $component->render($template_vars);
+}
