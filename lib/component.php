@@ -16,6 +16,7 @@ class Component {
           $styleguide,
           $namespace,
           $modifiers,
+          $modifier,
           $template,
           $variables;
 
@@ -47,16 +48,27 @@ class Component {
    * @return string
    */
   public function render($data) {
+
+    //$path = 'public://components';
+    $template_dir = variable_get('components_templates', COMPONENTS_COMPILED_TEMPLATES);
+
     // Double check folder.
-    $path = 'public://components';
-    if (!file_prepare_directory($path, FILE_CREATE_DIRECTORY | FILE_MODIFY_PERMISSIONS)) {
-      drupal_set_message(t('Unable to create Components template cache directory. Check the permissions on your files directory.'), 'error');
+    if (!file_prepare_directory($template_dir, FILE_CREATE_DIRECTORY | FILE_MODIFY_PERMISSIONS)) {
+      drupal_set_message(t(
+        'Unable to create Components template cache directory. Check the permissions on your files directory.'
+      ), 'error');
       return;
     }
 
+    // Add inherant details.
+    $data = array_merge($data, array(
+      'modifier_class' => $this->modifier
+    ));
+
     // Stash compiled (PHP) version of template.
     // @todo Allow for private files.
-    $filepath = 'public://components/' . $this->namespace . '.php';
+
+    $filepath = $template_dir . '/' . $this->namespace . '.php';
     if (!file_exists($filepath)) {
       $handlebar = new LightnCandy();
       $compiled = $handlebar->compile($this->template);
@@ -78,12 +90,42 @@ class Component {
 
 
   /**
+   * Choose modifier state for later rendering.
+   *
+   * @param string $modifier
+   */
+  public function setModifier($modifier) {
+    $this->modifier = $modifier;
+  }
+
+
+  /**
+   * Discover modifier state.
+   *
+   * @return string $modifier
+   */
+  public function getModifier($modifier) {
+    return $this->modifier;
+  }
+
+
+  /**
    * Retrieve list of variables.
    *
    * @return array
    */
   public function getVariables() {
     return $this->variables;
+  }
+
+
+  /**
+  * Set: Remove all stored records.
+  *
+  * @todo Delete entities.
+  */
+  public function delete() {
+   variable_del($this->namespace, $data);
   }
 
 
@@ -113,8 +155,11 @@ class Component {
     }
 
     // Modifiers.
+    $modifiers = array();
     $section = $this->styleguide->getSection($this->name);
-    $modifiers = $section->getModifiers();
+    foreach ($section->getModifiers() as $modifier) {
+      $modifiers[] = $modifier->getName();
+    }
 
     // Classes.
     //$classes = $section->getClassName();
@@ -204,15 +249,5 @@ class Component {
         return array();
         break;
     }
-  }
-
-
-  /**
-  * Set: Remove all stored records.
-  *
-  * @todo Delete entities.
-  */
-  private function delete() {
-   variable_del($this->namespace, $data);
   }
 }

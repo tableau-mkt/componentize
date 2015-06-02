@@ -4,12 +4,14 @@
  */
 
 use Component\ComponentFactory;
-use Scan\Kss\Parser;
+use Component\ParserKSSnode;
 
 //use Components\Component;
 require('lib/component.php');
 
 define('COMPONENTS_DIRECTORY', 'sites/all/components');
+define('COMPONENTS_COMPILED_ASSETS', 'sites/all/components/dist');
+define('COMPONENTS_COMPILED_TEMPLATES', 'sites/default/files/components');
 
 /**
  * Implements hook_menu().
@@ -23,6 +25,14 @@ function components_menu() {
     'page arguments' => array('components_settings'),
     'file' => 'components.admin.inc'
   );
+  $items['components'] = array(
+    'title' => 'Components Library',
+    'description' => 'Browse available component structure.',
+    'access arguments' => array('visit components library'),
+    'page callback' => '_components_library',
+    'file' => 'components.library.inc'
+  );
+
   return $items;
 }
 
@@ -37,6 +47,16 @@ function components_permission() {
       'description' => t('Configure component entities.')
     )
   );
+}
+
+
+/**
+ * Implments hook_preprocess_page().
+ */
+function components_preprocess_page(&$variables) {
+  $assets_dir = variable_get('components_assets', COMPONENTS_COMPILED_ASSETS);
+  drupal_add_js($assets_dir . '/scripts.js');
+  drupal_add_css($assets_dir . '/style.css');
 }
 
 
@@ -87,18 +107,18 @@ function components_permission() {
  * @return array
  */
 function _components_list($shallow = FALSE, $reset = FALSE) {
-  $list = &drupal_static(__FUNCTION__ . $shallow);
+  $list = &drupal_static(__FUNCTION__ . (($shallow) ? 'SHALLOW' : 'FULL'));
   $styleguide = &drupal_static(__FUNCTION__);
   $dir = variable_get('components_directory', COMPONENTS_DIRECTORY);
 
   // Use the stored variable.
-  if (isset($list)) return $list;
+  if (isset($list) && !$reset) return $list;
 
   // Get the list, try via variable.
   $list = variable_get('components_list', array());
   if (empty($list)) {
     // Parse all styles.
-    $styleguide = new Parser($dir);
+    $styleguide = new ParserKSSnode($dir);
     $sections =  $styleguide->getSections();
     foreach ($sections as $section) {
       $components = $styleguide->getSectionChildren($section->getTitle());
@@ -125,6 +145,7 @@ function _components_list($shallow = FALSE, $reset = FALSE) {
   foreach ($list as $key => $component) {
     $list_full[$component] = $factory->create($component, array());
   }
+  $list = $list_full;
 
-  return $list_full;
+  return $list;
 }

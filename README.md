@@ -4,7 +4,9 @@
 
 Want to organize your styles into components? Want to use [Handlebars](http://handlebarsjs.com) as templates? Want an automated living styleguide via [KSS](http://warpspire.com/kss/styleguides)? Use a clean front-end structure and make Drupal aware with convenient developer APIs; render CMS content through Handlebars templates! Even map eventity [fieldgroups](https://www.drupal.org/project/field_group) directly to components without writing a line of code.
 
+
 ## Get Started
+
 
 ### Basic Install
 1. Install [Composer](https://getcomposer.org/doc/00-intro.md) to manage dependencies.
@@ -22,11 +24,21 @@ $conf['composer_manager_file_dir'] = './';
 1. Drop in a few components, see examples.
 1. Install Drupal module via Drush or admin UI.
 
+
 ### Drupal Config
 1. Visit the admin page for basic settings. Choose cache aggresiveness for tracking component data. Recommenadation: Off.
 1. Set a content-type fieldgroup Component within display mode settings.
 1. Add fields, chose mapping for template variables to field names.
 1. View node.
+
+
+### Workflow
+You may want to keep your components in a separate repo from your site code and theme.  For convenience set the local development location of your component library to somewhere outside your Drupal site code...
+```php
+$conf['components_assets'] = './my_components';
+$conf['components_assets'] = './my_components/dist';
+```
+
 
 ### Developer Use
 This module allows you to refer to components and render content through Handlebars templates within PHP code inside Drupal.  Here's an example...

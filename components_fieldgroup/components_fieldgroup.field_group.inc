@@ -13,8 +13,6 @@ define('COMPONENTS_LABEL_CAPTION', 3);
  * @todo Avoid showing up in form admin.
  */
 function components_fieldgroup_field_group_formatter_info() {
-  $formatters = array();
-
   return array(
     'form' => array(
       'components_fieldgroup' => array(
@@ -56,7 +54,7 @@ function components_fieldgroup_field_group_format_settings($group) {
   if ($mode === 'form') return;
 
   $field_group_types = field_group_formatter_info();
-  $formatter = $field_group_types[$mode][$group->format_type];
+  //$formatter = $field_group_types[$mode][$group->format_type];
 
   // Wrapper for extra settings to use by others.
   $form = array(
@@ -73,35 +71,37 @@ function components_fieldgroup_field_group_format_settings($group) {
         '#title' => t('Component'),
         '#type' => 'select',
         '#options' => drupal_map_assoc(_components_list(TRUE)),
-        '#default_value' => _components_fieldgroup_settings_defaults($group, $formatter, 'component'),
+        '#default_value' => _components_fieldgroup_settings_default($group, 'component'),
         '#weight' => 1,
       );
       $form['instance_settings']['modifiers'] = array(
         '#title' => t('Modifier'),
         '#type' => 'fieldgroup',
       );
+
+// dsm('components_fieldgroup_field_group_format_settings');
+// dsm(_components_list());
+
       foreach (_components_list() as $component) {
-
-//dsm(get_class_methods($component));
-
-        // Separate list for each components' modifiers.
-        // $form['instance_settings']['modifiers'][$component->name] = array(
-        //   '#title' => $component->name . ' Modifiers',
-        //   '#type' => 'select',
-        //   '#options' => drupal_map_assoc($component->getModifiers()),
-        //   '#states' => array(
-        //     'visible' => array(
-        //       ':input[name$="[component]"]' => array('value' => $component->name),
-        //     ),
-        //   ),
-        //   '#default_value' => _components_fieldgroup_settings_defaults($group, $formatter, 'modifier', ''),
-        // );
+        //Separate list for each components' modifiers.
+        $form['instance_settings']['modifiers'][$component->name] = array(
+          '#title' => $component->name . ' Modifiers',
+          '#type' => 'select',
+          '#options' => drupal_map_assoc($component->getModifiers()),
+          '#states' => array(
+            'visible' => array(
+              ':input[name$="[component]"]' => array('value' => $component->name),
+            ),
+          ),
+          '#weight' => 2,
+          '#default_value' => _components_fieldgroup_settings_default($group, 'modifier'),
+        );
       }
 
       $form['instance_settings']['classes'] = array(
         '#title' => t('Extra CSS classes'),
         '#type' => 'textfield',
-        '#default_value' => _components_fieldgroup_settings_defaults($group, $formatter, 'classes'),
+        '#default_value' => _components_fieldgroup_settings_default($group, 'classes'),
         '#weight' => 3,
         '#element_validate' => array('field_group_validate_css_class'),
       );
@@ -128,15 +128,13 @@ function components_fieldgroup_field_group_format_settings($group) {
 
 
 /**
- * Get the settings detault
+ * Get the settings detault.
  */
-function _components_fieldgroup_settings_defaults($group, &$formatter, $property) {
+function _components_fieldgroup_settings_default($group, $property) {
   if (isset($group->format_settings['instance_settings'][$property])) {
     return $group->format_settings['instance_settings'][$property];
   }
-  else {
-    return $formatter['instance_settings'][$property];
-  }
+  return '';
 }
 
 

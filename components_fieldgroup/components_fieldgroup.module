@@ -152,7 +152,7 @@ function theme_components_fieldgroup($variables) {
 
 
   // @todo Get mapping from field settings within group.
-dsm($variables);
+//dsm($variables);
 
 
   return $component->render($template_vars);

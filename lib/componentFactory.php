@@ -5,7 +5,7 @@
 
 namespace Component;
 
-use Scan\Kss\Parser;
+use Component\ParserKSSnode;
 
 
 class ComponentFactory {
@@ -24,7 +24,7 @@ class ComponentFactory {
 
     // Use a common static styleguide parser.
     if (!self::$styleguide) {
-      self::$styleguide =  new Parser($this->configs['path']);
+      self::$styleguide =  new ParserKSSnode($this->configs['path']);
     }
 
     return new Component($name, $this->configs, self::$styleguide);
