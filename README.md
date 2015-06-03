@@ -4,9 +4,7 @@
 
 Want to organize your styles into components? Want to use [Handlebars](http://handlebarsjs.com) as templates? Want an automated living styleguide via [KSS](http://warpspire.com/kss/styleguides)? Use a clean front-end structure and make Drupal aware with convenient developer APIs; render CMS content through Handlebars templates! Even map eventity [fieldgroups](https://www.drupal.org/project/field_group) directly to components without writing a line of code.
 
-
 ## Get Started
-
 
 ### Basic Install
 1. Install [Composer](https://getcomposer.org/doc/00-intro.md) to manage dependencies.
@@ -17,19 +15,28 @@ $conf['composer_manager_vendor_dir'] = 'vendor';
 $conf['composer_manager_file_dir'] = './';
 ```
 1. Build your project root composer config: `drush composer-json-rebuild`
-1. Get dependencies via `drush composer install --prefer-dist`
+1. Get library dependencies via `drush composer install --prefer-dist`
   * [KSS-PHP](https://github.com/scaninc/kss-php), KSS component parser for PHP
   * [Lightncandy](https://github.com/zordius/lightncandy), Handlebars rendering
+1. Drupal dependencies (for component_fieldgroup)
+  * [Chaos tool suite](http://www.drupal.org/project/ctools)
+  * [Field Group](http://www.drupal.org/project/field_group)
+  * [Field formatter settings](http://www.drupal.org/project/field_formatter_settings)
 1. Create a `/sites/all/components` folder.
 1. Drop in a few components, see examples.
 1. Install Drupal module via Drush or admin UI.
 
 
 ### Drupal Config
-1. Visit the admin page for basic settings. Choose cache aggresiveness for tracking component data. Recommenadation: Off.
-1. Set a content-type fieldgroup Component within display mode settings.
-1. Add fields, chose mapping for template variables to field names.
-1. View node.
+1. Visit the admin page for basic settings. Choose cache aggresiveness for tracking component data.
+1. Edit a content-type field display settings. Add a fieldgroup as Component, chose the component and optionally modifier.
+1. Add fields to the group and chose mapping to the template variables.
+1. Save the display mode.
+1. View your node in the same view mode you edited, fields should be piped through your Handlebars template!
+
+
+## Recommended Companions
+1. [CCK Blocks](https://www.drupal.org/project/cck_blocks) -- Turn your fieldgroup into a block on the node page.
 
 
 ### Workflow
