@@ -1,0 +1,5 @@
+name = Components Context
+description = Alter components based on context.
+core = 7.x
+dependencies[] = components
+dependencies[] = context
