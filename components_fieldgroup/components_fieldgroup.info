@@ -1,7 +1,0 @@
-name = Components Fieldgroup
-description = Render fieldgroup through a component template in Handlebars.
-core = 7.x
-dependencies[] = components
-dependencies[] = ctools
-dependencies[] = field_group
-dependencies[] = field_formatter_settings

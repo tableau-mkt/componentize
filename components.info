@@ -1,5 +1,0 @@
-name = Components API
-description = TODO
-core = 7.x
-dependencies[] = composer_manager
-configure = admin/config/components
