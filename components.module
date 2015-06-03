@@ -55,8 +55,22 @@ function components_permission() {
  */
 function components_preprocess_page(&$variables) {
   $assets_dir = variable_get('components_assets', COMPONENTS_COMPILED_ASSETS);
-  drupal_add_js($assets_dir . '/scripts.js');
-  drupal_add_css($assets_dir . '/style.css');
+
+  // Javascript.
+  if (file_exists($assets_dir . '/script.js')) {
+    drupal_add_js($assets_dir . '/script.js');
+  }
+  else {
+    drupal_set_message(t('Unable to find and include compiled Components javascript.'), 'warning');
+  }
+
+  // CSS.
+  if (file_exists($assets_dir . '/style.css')) {
+    drupal_add_css($assets_dir . '/style.css');
+  }
+  else {
+    drupal_set_message(t('Unable to find and include compiled Components styles.'), 'warning');
+  }
 }
 
 
@@ -144,6 +158,10 @@ function _components_list($shallow = FALSE, $reset = FALSE) {
   $factory = new ComponentFactory;
   foreach ($list as $key => $component) {
     $list_full[$component] = $factory->create($component, array());
+
+    if ($reset) {
+      $list_full[$component]->remove();
+    }
   }
   $list = $list_full;
 

@@ -12,20 +12,29 @@ function components_settings() {
 
     'components_directory' => array(
       '#type' => 'textfield',
-      '#title' => 'Directory',
-      '#description' => t('Folder location of site components. Default: !folder',
+      '#title' => 'Component directory',
+      '#description' => t('Folder location of site components (default: !folder).',
         array('!folder' => COMPONENTS_DIRECTORY
       )),
       '#default_value' => variable_get('components_directory', COMPONENTS_DIRECTORY),
     ),
 
+    'components_assets' => array(
+      '#type' => 'textfield',
+      '#title' => 'Compiled assets directory',
+      '#description' => t('Folder location of compiled site components CSS and javascript (default: !folder). Files should be named: style.css and script.js',
+        array('!folder' => COMPONENTS_COMPILED_ASSETS
+      )),
+      '#default_value' => variable_get('components_assets', COMPONENTS_COMPILED_ASSETS),
+    ),
+
     'components_storage' => array(
       '#type' => 'select',
-      '#options' => drupal_map_assoc(array(
-        0 => t('Full - Variable'),
-        1 => t('Less - Cache'),
-        2 => t('None - Files'),
-      )),
+      '#options' => array(
+        'variable' => t('Strong - Variable'),
+        'cache' => t('Less - Cache'),
+        'none' => t('None - Files'),
+      ),
       '#title' => 'Config storage',
       '#description' => t('Avoid regenerating with less aggresive caching. Data will be stored in either: variables, cache or regenerated on every page load.'),
       '#default_value' => variable_get('components_storage', 1),

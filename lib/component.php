@@ -18,7 +18,8 @@ class Component {
           $modifiers,
           $modifier,
           $template,
-          $variables;
+          $variables,
+          $template_dir;
 
   /**
    * Constructor.
@@ -27,6 +28,9 @@ class Component {
     $this->name = $name;
     $this->configs = $configs;
     $this->styleguide = $styleguide;
+
+    // Common.
+    $this->template_dir = variable_get('components_templates', COMPONENTS_COMPILED_TEMPLATES);
 
     // Full storage namespace.
     $this->namespace = $this->configs['module'] . '-' .  $this->name;
@@ -48,12 +52,8 @@ class Component {
    * @return string
    */
   public function render($data) {
-
-    //$path = 'public://components';
-    $template_dir = variable_get('components_templates', COMPONENTS_COMPILED_TEMPLATES);
-
     // Double check folder.
-    if (!file_prepare_directory($template_dir, FILE_CREATE_DIRECTORY | FILE_MODIFY_PERMISSIONS)) {
+    if (!file_prepare_directory($this->template_dir, FILE_CREATE_DIRECTORY | FILE_MODIFY_PERMISSIONS)) {
       drupal_set_message(t(
         'Unable to create Components template cache directory. Check the permissions on your files directory.'
       ), 'error');
@@ -68,13 +68,14 @@ class Component {
     // Stash compiled (PHP) version of template.
     // @todo Allow for private files.
 
-    $filepath = $template_dir . '/' . $this->namespace . '.php';
-    if (!file_exists($filepath)) {
+    $filepath = $this->template_dir . '/' . $this->namespace . '.php';
+    if (!file_exists($filepath) || $this->configs['storage'] === 'none') {
       $handlebar = new LightnCandy();
       $compiled = $handlebar->compile($this->template);
       file_unmanaged_save_data($compiled, $filepath, FILE_EXISTS_REPLACE);
     }
     $renderer = include($filepath);
+
     return $renderer($data);
   }
 
@@ -90,12 +91,12 @@ class Component {
 
 
   /**
-   * Choose modifier state for later rendering.
+   * Choose modifier state for later rendering, strip CSS selector prefix.
    *
    * @param string $modifier
    */
   public function setModifier($modifier) {
-    $this->modifier = $modifier;
+    $this->modifier = preg_replace('/^(\.|#)/', '', $modifier);
   }
 
 
@@ -120,12 +121,16 @@ class Component {
 
 
   /**
-  * Set: Remove all stored records.
-  *
-  * @todo Delete entities.
-  */
-  public function delete() {
-   variable_del($this->namespace, $data);
+   * Remove all stored records.
+   *
+   * @todo Delete entities.
+   */
+  public function remove() {
+    // Storage.
+    cache_clear_all($this->namespace, 'cache');
+    variable_del($this->namespace);
+    // Compiled template.
+    file_unmanaged_delete($this->template_dir . '/' . $this->namespace . '.php');
   }
 
 
@@ -199,12 +204,13 @@ class Component {
    */
   private function openComponent($filename) {
     $filepath = $this->configs['path'] . '/'. $filename;
-    try {
+    if (file_exists($filepath)) {
       return file_get_contents($filepath);
     }
-    catch(Exception $e) {
-      drupal_set_message('components', 'Web component file missing: @file',
-          array('@file' => $filepath), WATCHDOG_ERROR);
+    else {
+      drupal_set_message(t(
+        'Web component file missing: @file', array('@file' => $filepath)
+      ), 'warning');
       return FALSE;
     }
   }
@@ -219,12 +225,12 @@ class Component {
    */
   private function save($data) {
     switch ($this->configs['storage']) {
-      case 2:
-        variable_set($this->namespace, $data);
+      case 'variable':
+        variable_set('components_' . $this->namespace, $data);
         break;
 
-      case 1:
-        cache_set($this->namespace, $data);
+      case 'cache':
+        cache_set('components_' . $this->namespace, $data);
         break;
     }
   }
@@ -237,12 +243,12 @@ class Component {
    */
   private function retrieve() {
     switch ($this->configs['storage']) {
-      case 2:
-        variable_get($this->namespace);
+      case 'variable':
+        variable_get('components_' . $this->namespace);
         break;
 
-      case 1:
-        cache_get($this->namespace);
+      case 'cache':
+        cache_get('components_' . $this->namespace);
         break;
 
       default:

@@ -22,6 +22,8 @@ class ComponentFactory {
       'module' => 'components',
     );
 
+    // @todo Avoid even creating the styleguide if everything is already in storage.
+
     // Use a common static styleguide parser.
     if (!self::$styleguide) {
       self::$styleguide =  new ParserKSSnode($this->configs['path']);

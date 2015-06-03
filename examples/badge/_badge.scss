@@ -12,9 +12,6 @@ Weight: 4
 .badge--light-gray-2 - Light Gray 2 colored badge.
 .badge--dark-gray-1 - Dk Gray 1 colored badge.
 .badge--dark-gray-2 - Dk Gray 2 colored badge.
-.badge--dark-gray-3 - Dk Gray 3 colored badge.
-.badge--about-featured - About/Feat colored badge.
-.badge--data-sources - Data Sources colored badge.
 
 Styleguide boxes - badge
  */
@@ -24,8 +21,8 @@ Styleguide boxes - badge
   height: 200px;
   display: inline-block;
   padding: 20px;
-  background: $bg-about-featured;
-  border: 3px solid $bg-about-featured;
+  background: $bg-standard;
+  border: 3px solid $bg-standard;
   color: $white;
   border-radius: 50%;
   text-align: center;

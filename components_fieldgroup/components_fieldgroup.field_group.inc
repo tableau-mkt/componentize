@@ -14,17 +14,6 @@ define('COMPONENTS_LABEL_CAPTION', 3);
  */
 function components_fieldgroup_field_group_formatter_info() {
   return array(
-    'form' => array(
-      'components_fieldgroup' => array(
-        'label' => t('Component'),
-        'description' => t("This fieldgroup renders the inner content using the selected Component's structure"),
-        'instance_settings' => array(
-          'component' => '',
-          'modifiers' => '',
-          'classes' => '',
-        ),
-      ),
-    ),
     'display' => array(
       'components_fieldgroup' => array(
         'label' => t('Component'),
@@ -32,7 +21,6 @@ function components_fieldgroup_field_group_formatter_info() {
         'instance_settings' => array(
           'component' => '',
           'modifiers' => '',
-          'classes' => '',
         ),
       ),
     ),
@@ -57,11 +45,7 @@ function components_fieldgroup_field_group_format_settings($group) {
   //$formatter = $field_group_types[$mode][$group->format_type];
 
   // Wrapper for extra settings to use by others.
-  $form = array(
-    'instance_settings' => array(
-      '#tree' => TRUE,
-      '#weight' => 5
-  ));
+  $form = array('instance_settings' => array('#tree' => TRUE, '#weight' => 5));
 
   // Add optional instance_settings.
   switch ($group->format_type) {
@@ -74,18 +58,17 @@ function components_fieldgroup_field_group_format_settings($group) {
         '#default_value' => _components_fieldgroup_settings_default($group, 'component'),
         '#weight' => 1,
       );
-      $form['instance_settings']['modifiers'] = array(
+
+      $form['instance_settings']['modifier'] = array(
         '#title' => t('Modifier'),
         '#type' => 'fieldgroup',
+        '#element_validate' => array('components_fieldgroup_single_modifier_validate'),
+        '#weight' => 2,
       );
-
-// dsm('components_fieldgroup_field_group_format_settings');
-// dsm(_components_list());
-
       foreach (_components_list() as $component) {
         //Separate list for each components' modifiers.
-        $form['instance_settings']['modifiers'][$component->name] = array(
-          '#title' => $component->name . ' Modifiers',
+        $form['instance_settings']['modifier'][$component->name] = array(
+          '#title' => $component->name . ' Modifier',
           '#type' => 'select',
           '#options' => drupal_map_assoc($component->getModifiers()),
           '#states' => array(
@@ -93,32 +76,9 @@ function components_fieldgroup_field_group_format_settings($group) {
               ':input[name$="[component]"]' => array('value' => $component->name),
             ),
           ),
-          '#weight' => 2,
           '#default_value' => _components_fieldgroup_settings_default($group, 'modifier'),
         );
       }
-
-      $form['instance_settings']['classes'] = array(
-        '#title' => t('Extra CSS classes'),
-        '#type' => 'textfield',
-        '#default_value' => _components_fieldgroup_settings_default($group, 'classes'),
-        '#weight' => 3,
-        '#element_validate' => array('field_group_validate_css_class'),
-      );
-
-      // @todo Add field mapping.
-
-     /* $form['instance_settings']['variables'] = array(
-        '#title' => t('Expected Fields'),
-        '#type' => 'markup',
-        '#value' => 'placeholder',
-        '#states' => array(
-          'visible' => array(
-            ':input[name=component]'
-          ),
-        ),
-      );
-      */
 
       break;
   }
@@ -147,57 +107,18 @@ function _components_fieldgroup_settings_default($group, $property) {
  * @param array &$form
  */
 function field_group_pre_render_components_fieldgroup(&$element, $group, &$form) {
-  $settings = $group->format_settings['instance_settings'];
+  // @todo May want to access the label position within the template.
+  // $element['#label_display']
 
+  // Add necessary items to variables within theme function.
   $element += array(
     '#type' => 'components_fieldgroup',
     '#theme' => 'components_fieldgroup',
-    '#title' => check_plain(t($group->label)),
+    '#title' => t($group->label),
     '#description' => $group->description,
     '#parents' => array($group->parent_name),
     '#children' => $group->children,
-    '#settings' => $settings,
-    '#mapping' => '@todo'
+    '#settings' => $group->format_settings['instance_settings'],
+    '#view_mode' => $group->mode,
   );
-
-dsm('@todo: include field to template mapping');
-dsm('@todo: attach js dependencies');
-  // $js[] = 'sites/all/components/' . $settings->component->dependencies . '.js';
-  //$element['#attached']['js'][] = $js;
-}
-
-
-/**
- * Helper function to parse the components directory
- */
-function _components_fieldgroup_modifiers_options() {
-  $dummy_components = array(
-    'button' => array(
-      'expected_fields' => array('title','description'),
-      'modifiers' => array('cta','red','blue','yellow','small','large'),
-    ),
-    'box' => array(
-      'expected_fields' => array('content'),
-      'modifiers' => array('solid','outline','rounded','double-padding'),
-    ),
-    'badge' => array(
-      'expected_fields' => array('title','number','tagline'),
-      'modifiers' => array('red','blue','yellow','round'),
-    ),
-  );
-
-  $components = array();
-
-  foreach ($dummy_components as $key => $value) {
-    $myComponent = new Component('badge');
-    foreach ($value['expected_fields'] as $field) {
-      $myComponent->addField($field);
-    }
-    foreach ($value['modifiers'] as $modifier) {
-     $myComponent->addModifier($modifier);
-    }
-    $components[] = $myComponent;
-  }
-
-  return $components;
 }
