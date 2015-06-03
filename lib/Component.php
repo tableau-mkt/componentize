@@ -17,8 +17,8 @@ class Component {
           $namespace,
           $modifiers,
           $modifier,
-          $template,
           $variables,
+          $template,
           $template_dir;
 
   /**
@@ -62,12 +62,20 @@ class Component {
 
     // Add inherant details.
     $data = array_merge($data, array(
-      'modifier_class' => $this->modifier
+      'modifier_class' => preg_replace('/^(\.|#)/', '', $this->modifier)
     ));
+
+    // Limited assets.
+    $path = drupal_get_path('module', $this->configs['module']) . '/';
+    if (isset($this->configs['css'])) {
+      drupal_add_css($path . $this->configs['css']);
+    }
+    if (isset($this->configs['js'])) {
+      drupal_add_css($path . $this->configs['js']);
+    }
 
     // Stash compiled (PHP) version of template.
     // @todo Allow for private files.
-
     $filepath = $this->template_dir . '/' . $this->namespace . '.php';
     if (!file_exists($filepath) || $this->configs['storage'] === 'none') {
       $handlebar = new LightnCandy();
@@ -76,7 +84,19 @@ class Component {
     }
     $renderer = include($filepath);
 
+    drupal_alter('components_render', $this, $data);
+
     return $renderer($data);
+  }
+
+
+  /**
+   * Retrieve name of component.
+   *
+   * @return array
+   */
+  public function getName() {
+    return $this->name;
   }
 
 
@@ -96,7 +116,7 @@ class Component {
    * @param string $modifier
    */
   public function setModifier($modifier) {
-    $this->modifier = preg_replace('/^(\.|#)/', '', $modifier);
+    $this->modifier = $modifier;
   }
 
 

@@ -172,11 +172,16 @@ function theme_components_fieldgroup($variables) {
     else {
       $template_vars[$variable_map] = $element[$field_name]['#items'][0]['safe_value'];
     }
+
+    // Add field label to available variables.
+    $template_vars[$variable_map . '_label'] = $instance['label'];
   }
 
   // Pass data through template.
   $factory = new ComponentFactory;
   $component = $factory->create($element['#settings']['component']);
+
+  // Make modifier available in the template.
   if (isset($element['#settings']['modifier'])) {
     $component->setModifier($element['#settings']['modifier']);
   }

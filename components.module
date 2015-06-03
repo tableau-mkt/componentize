@@ -87,12 +87,12 @@ function components_preprocess_page(&$variables) {
 //     $attached = array();
 //     if ($component->js) {
 //       $attached[] = variable_get('components_directory', COMPONENTS_DIRECTORY) .
-//           '/' . $component->name . '.js';
+//           '/' . $component->getName() . '.js';
 //     }
 
-//     $blocks['components-' . $component->namespace] = array(
-//       'info' => $component->name,
-//       '#markup' => _components_block_content($component->name),
+//     $blocks['components-' . $component->getNamespace() = array(
+//       'info' => $component->getName(),
+//       '#markup' => _components_block_content($component->getName()),
 //       'cache' => DRUPAL_NO_CACHE,
 //       '#attached' => array('js' => $attached),
 //     );
@@ -130,7 +130,7 @@ function _components_list($shallow = FALSE, $reset = FALSE) {
 
   // Get the list, try via variable.
   $list = variable_get('components_list', array());
-  if (empty($list)) {
+  if (empty($list) && $reset) {
     // Parse all styles.
     $styleguide = new ParserKSSnode($dir);
     $sections =  $styleguide->getSections();
@@ -147,23 +147,24 @@ function _components_list($shallow = FALSE, $reset = FALSE) {
     }
   }
 
+  // Keep simple when possible.
+  if (!$shallow) {
+    // Build component objects.
+    $list_full = array();
+    $factory = new ComponentFactory;
+    foreach ($list as $key => $component) {
+      $list_full[$component] = $factory->create($component, array());
+      // Clear storage and compiled templates.
+      if ($reset) {
+        $list_full[$component]->remove();
+      }
+    }
+    // Allows static.
+    $list = $list_full;
+  }
+
   // Allow adding custom components.
   drupal_alter('components_list', $list, $shallow);
-
-  // Keep it simple.
-  if ($shallow) return $list;
-
-  // Build component objects.
-  $list_full = array();
-  $factory = new ComponentFactory;
-  foreach ($list as $key => $component) {
-    $list_full[$component] = $factory->create($component, array());
-
-    if ($reset) {
-      $list_full[$component]->remove();
-    }
-  }
-  $list = $list_full;
 
   return $list;
 }

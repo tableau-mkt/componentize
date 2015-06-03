@@ -67,13 +67,13 @@ function components_fieldgroup_field_group_format_settings($group) {
       );
       foreach (_components_list() as $component) {
         //Separate list for each components' modifiers.
-        $form['instance_settings']['modifier'][$component->name] = array(
-          '#title' => $component->name . ' Modifier',
+        $form['instance_settings']['modifier'][$component->getName()] = array(
+          '#title' => $component->getName() . ' Modifier',
           '#type' => 'select',
           '#options' => drupal_map_assoc($component->getModifiers()),
           '#states' => array(
             'visible' => array(
-              ':input[name$="[component]"]' => array('value' => $component->name),
+              ':input[name$="[component]"]' => array('value' => $component->getName()),
             ),
           ),
           '#default_value' => _components_fieldgroup_settings_default($group, 'modifier'),
