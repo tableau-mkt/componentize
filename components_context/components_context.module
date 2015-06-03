@@ -3,7 +3,6 @@
  * @file Alter components based on context.
  */
 
-use Component\ComponentFactory;
 
 /**
  * Implements hook_context_registry().

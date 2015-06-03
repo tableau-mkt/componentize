@@ -18,6 +18,7 @@ function hook_components_list_alter(&$list, $shallow) {
   if ($shallow) {
     // Just add yours to the array.
     $list[] = 'my_component';
+    return;
   }
 
   // Build a full component.
