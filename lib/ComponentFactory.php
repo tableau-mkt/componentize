@@ -4,9 +4,7 @@
  */
 
 namespace Component;
-
 use Component\ParserKSSnode;
-
 
 class ComponentFactory {
 

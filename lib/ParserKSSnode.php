@@ -4,9 +4,7 @@
  */
 
 namespace Component;
-
 use Scan\Kss\Parser;
-
 
 class ParserKSSnode extends Parser {
   /**

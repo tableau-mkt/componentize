@@ -4,15 +4,12 @@
  */
 
 namespace Component;
-
 use LightnCandy;
-
 
 class Component {
 
-  public  $name;
-
-  private $configs,
+  private $name,
+          $configs,
           $styleguide,
           $namespace,
           $modifiers,
@@ -157,7 +154,7 @@ class Component {
    * @param string $modifier
    */
   public function getSection() {
-    $section = $this->styleguide->getSection($this->name);
+    // @todo Probably a better way within library.
     return current(explode('.', $this->name));
   }
 
