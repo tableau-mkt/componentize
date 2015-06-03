@@ -61,5 +61,5 @@ function components_settings() {
  */
 function components_regenerate() {
   // Second param is reset.
-  _components_list(FALSE, TRUE);
+  components_list(FALSE, TRUE);
 }

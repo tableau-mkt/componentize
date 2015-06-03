@@ -65,7 +65,7 @@ class Component {
       'modifier_class' => preg_replace('/^(\.|#)/', '', $this->modifier)
     ));
 
-    // Limited assets.
+    // Limited scope assets.
     $path = drupal_get_path('module', $this->configs['module']) . '/';
     if (isset($this->configs['css'])) {
       drupal_add_css($path . $this->configs['css']);
@@ -75,7 +75,6 @@ class Component {
     }
 
     // Stash compiled (PHP) version of template.
-    // @todo Allow for private files.
     $filepath = $this->template_dir . '/' . $this->namespace . '.php';
     if (!file_exists($filepath) || $this->configs['storage'] === 'none') {
       $handlebar = new LightnCandy();
@@ -84,6 +83,7 @@ class Component {
     }
     $renderer = include($filepath);
 
+    // Allow access.
     drupal_alter('components_render', $this, $data);
 
     return $renderer($data);
@@ -97,6 +97,17 @@ class Component {
    */
   public function getName() {
     return $this->name;
+  }
+
+
+  /**
+   * Retrieve friendly name of component.
+   *
+   * @return array
+   */
+  public function getTitle() {
+    $section = $this->styleguide->getSection($this->name);
+    return $section->getTitle();
   }
 
 
@@ -141,6 +152,17 @@ class Component {
 
 
   /**
+   * Choose modifier state for later rendering, strip CSS selector prefix.
+   *
+   * @param string $modifier
+   */
+  public function getSection() {
+    $section = $this->styleguide->getSection($this->name);
+    return current(explode('.', $this->name));
+  }
+
+
+  /**
    * Remove all stored records.
    *
    * @todo Delete entities.
@@ -171,7 +193,7 @@ class Component {
     }
 
     $section = $this->styleguide->getSection($this->name);
-    $shortName = end(explode('.', $this->name));
+    $shortName = $section->getTitle();
 
     // Variable names within template (assignment test).
     $variables = array();

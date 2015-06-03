@@ -54,7 +54,7 @@ function components_fieldgroup_field_group_format_settings($group) {
       $form['instance_settings']['component'] = array(
         '#title' => t('Component'),
         '#type' => 'select',
-        '#options' => drupal_map_assoc(_components_list(TRUE)),
+        '#options' => drupal_map_assoc(components_list(TRUE)),
         '#default_value' => _components_fieldgroup_settings_default($group, 'component'),
         '#weight' => 1,
       );
@@ -65,7 +65,7 @@ function components_fieldgroup_field_group_format_settings($group) {
         '#element_validate' => array('components_fieldgroup_single_modifier_validate'),
         '#weight' => 2,
       );
-      foreach (_components_list() as $component) {
+      foreach (components_list() as $component) {
         //Separate list for each components' modifiers.
         $form['instance_settings']['modifier'][$component->getName()] = array(
           '#title' => $component->getName() . ' Modifier',

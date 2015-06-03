@@ -7,63 +7,55 @@
  * Menu callback for viewing available components.
  */
 function _components_library_output() {
-  $header = array(
-    t('Component'),
-    t('Section'),
-    t('Modifiers'),
-    t('Variables'),
-  );
+  $table = array(
+    'attributes' => array(),
+    'colgroups' => array(),
+    'sticky' => TRUE,
+    'empty' => t('No components added yet.'),
+    'header' => array(array(
+        'data' => t('Section'),
+        'field' => 'section',
+      ), array(
+        'data' => t('Component'),
+        'field' => 'component',
+      ), array(
+        'data' => t('Modifiers'),
+        'field' => 'modifiers',
+      ), array(
+        'data' => t('Variables'),
+        'field' => 'variables',
+      ),
+  ));
 
   // List all components.
-  $rows = array(
-  if (!empty(_components_list())) {
-    foreach (_components_list() as $component) {
-
-
-      $rows[] = array(array(
-          'data' => $component->getName(),
-          'class' => 'component',
-        ), array(
-          'data' => $component->getSection(),
-          'class' => 'section'
-        ), array(
-          'data' => $component->getModifiers(),
-          'class' => 'modifiers'
-        ), array(
-          'data' => $component->getVariables(),
-          'class' => 'variables'
-        ),
-      );
-
-
-      // Row with attributes on the row and some of its cells.
-      array(
-        'data' => array('Cell 1', array('data' => 'Cell 2', 'colspan' => 2)), 'class' => array('funky')
-      )
+  $table['rows'] = array();
+  foreach (components_list() as $component) {
+    $table['rows'][] = array(array(
+        'data' => $component->getSection(),
+        'field' => 'section',
+      ), array(
+        'data' => $component->getTitle(),
+        'field' => 'component',
+      ), array(
+        'data' => theme_item_list(array(
+          'items' => $component->getVariables(),
+          'type' => 'ol',
+          'attributes' => array(),
+          'title' => NULL,
+        )),
+        'field' => 'variables',
+      ), array(
+        'data' => theme_item_list(array(
+          'items' => $component->getModifiers(),
+          'type' => 'ol',
+          'attributes' => array(),
+          'title' => NULL,
+        )),
+        'field' => 'modifiers',
+      ),
     );
-
-
-      $output[] = $component->getName();
-    }
   }
-  else {
-    $empty = $variables ['empty'];
-  }
-$header = $variables ['header'];
-  $rows = $variables ['rows'];
-  $attributes = $variables ['attributes'];
-  $caption = $variables ['caption'];
-  $colgroups = $variables ['colgroups'];
-  $sticky = $variables ['sticky'];
-  $empty = $variables ['empty'];
+  $table['caption'] = count($table['rows']) . ' components found';
 
-
-  $table = array(
-    'header' => $header,
-    'rows' => $rows,
-    'sticky' => TRUE
-    'empty' => t('No components added yet.'),
-  );
-
-  return drupal_theme('table', $table);
+  return theme_table($table);
 }

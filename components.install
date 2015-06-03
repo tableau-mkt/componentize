@@ -17,7 +17,7 @@ function components_unistall() {
   }
 
   // Delete all stored component variables, if any.
-  foreach (_components_list() as $component) {
+  foreach (components_list() as $component) {
     $component->delete();
   }
 }

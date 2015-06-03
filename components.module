@@ -29,7 +29,7 @@ function components_menu() {
     'title' => 'Components Library',
     'description' => 'Browse available component structure.',
     'access arguments' => array('visit components library'),
-    'page callback' => '_components_library',
+    'page callback' => '_components_library_output',
     'file' => 'components.library.inc'
   );
 
@@ -120,7 +120,7 @@ function components_preprocess_page(&$variables) {
  *
  * @return array
  */
-function _components_list($shallow = FALSE, $reset = FALSE) {
+function components_list($shallow = FALSE, $reset = FALSE) {
   $list = &drupal_static(__FUNCTION__ . (($shallow) ? 'SHALLOW' : 'FULL'));
   $styleguide = &drupal_static(__FUNCTION__);
   $dir = variable_get('components_directory', COMPONENTS_DIRECTORY);

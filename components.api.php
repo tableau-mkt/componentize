@@ -16,17 +16,24 @@
  */
 function hook_components_list_alter(&$list, $shallow) {
   if ($shallow) {
+    // Just add yours to the array.
     $list[] = 'my_component';
   }
 
+  // Build a full component.
   $configs = array(
-    'path' => drupal_get_path('module', 'my_module') . '/components',
-    'module' => 'my_module',
-    'css' => 'components/my-component.js',
-    'css' => 'components/my-component.css',
+    'path'    => drupal_get_path('module', 'my_module') . '/components',
+    'module'  => 'my_module',
+    'css'     => 'components/my-component.css',
+    'js'      => 'components/my-component.js',
     'storage' => 'full', // Optional: storage level (variable, full, none).
   );
   $list['my_component'] = new ComponentFactory('Section.Component', $configs);
+
+  // Mess with an existing component.
+  if (current_path() === 'my-special-path') {
+    $list['some_component']->setModifier('.my-special-modifier');
+  }
 }
 
 
@@ -34,11 +41,11 @@ function hook_components_list_alter(&$list, $shallow) {
  * Alter data passed to the template.
  *
  * @param Component $component
- *   Component object about to tbe rendered.
+ *   Component object about to be rendered.
  * @param array &$data
  *   Key/value array of template variables.
  */
-function hook_components_render($component, &$data) {
+function hook_components_render_alter($component, &$data) {
   if ($component->getName() === 'my_component') {
     $data['special_text'] = t('My Special Text');
   }
