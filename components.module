@@ -12,6 +12,8 @@ require('lib/component.php');
 define('COMPONENTS_DIRECTORY', 'sites/all/components');
 define('COMPONENTS_COMPILED_ASSETS', 'sites/all/components/dist');
 define('COMPONENTS_COMPILED_TEMPLATES', 'sites/default/files/components');
+define('COMPONENTS_COMPILED_CSS', 'style.css');
+define('COMPONENTS_COMPILED_JS', 'script.js');
 
 /**
  * Implements hook_menu().
@@ -19,18 +21,24 @@ define('COMPONENTS_COMPILED_TEMPLATES', 'sites/default/files/components');
 function components_menu() {
   $items['admin/structure/components'] = array(
     'title' => 'Components',
+    'description' => 'Browse available component structure.',
+    'access arguments' => array('access components library'),
+    'page callback' => '_components_library_output',
+    'file' => 'components.library.inc'
+  );
+  $items[$path . '/library'] = array(
+    'title' => 'Library',
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+  );
+
+  $items['admin/structure/components/settings'] = array(
+    'title' => 'Settings',
     'description' => 'Configure component structure.',
-    'access arguments' => array('administer components'),
+    'type' => MENU_LOCAL_TASK,
+    'access arguments' => array('administer site configuration'),
     'page callback' => 'drupal_get_form',
     'page arguments' => array('components_settings'),
     'file' => 'components.admin.inc'
-  );
-  $items['components'] = array(
-    'title' => 'Components Library',
-    'description' => 'Browse available component structure.',
-    'access arguments' => array('visit components library'),
-    'page callback' => '_components_library_output',
-    'file' => 'components.library.inc'
   );
 
   return $items;
@@ -42,10 +50,10 @@ function components_menu() {
  */
 function components_permission() {
   return array(
-    'administer components' => array(
-      'title' => t('Administer Components'),
-      'description' => t('Configure component entities.')
-    )
+    'access components library' => array(
+      'title' => t('Visit Components Library'),
+      'description' => t('Browse available component structure.')
+    ),
   );
 }
 
@@ -57,16 +65,16 @@ function components_preprocess_page(&$variables) {
   $assets_dir = variable_get('components_assets', COMPONENTS_COMPILED_ASSETS);
 
   // Javascript.
-  if (file_exists($assets_dir . '/script.js')) {
-    drupal_add_js($assets_dir . '/script.js');
+  if (file_exists($assets_dir . '/' . COMPONENTS_COMPILED_JS)) {
+    drupal_add_js($assets_dir . '/' . COMPONENTS_COMPILED_JS);
   }
   else {
     drupal_set_message(t('Unable to find and include compiled Components javascript.'), 'warning');
   }
 
   // CSS.
-  if (file_exists($assets_dir . '/style.css')) {
-    drupal_add_css($assets_dir . '/style.css');
+  if (file_exists($assets_dir . '/' . COMPONENTS_COMPILED_CSS)) {
+    drupal_add_css($assets_dir . '/' . COMPONENTS_COMPILED_CSS);
   }
   else {
     drupal_set_message(t('Unable to find and include compiled Components styles.'), 'warning');

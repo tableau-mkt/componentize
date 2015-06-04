@@ -19,11 +19,11 @@ function _components_library_output() {
         'data' => t('Component'),
         'field' => 'component',
       ), array(
-        'data' => t('Modifiers'),
-        'field' => 'modifiers',
-      ), array(
         'data' => t('Variables'),
         'field' => 'variables',
+      ), array(
+        'data' => t('Modifiers'),
+        'field' => 'modifiers',
       ),
   ));
 

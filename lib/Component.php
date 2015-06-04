@@ -57,11 +57,6 @@ class Component {
       return;
     }
 
-    // Add inherant details.
-    $data = array_merge($data, array(
-      'modifier_class' => preg_replace('/^(\.|#)/', '', $this->modifier)
-    ));
-
     // Limited scope assets.
     $path = drupal_get_path('module', $this->configs['module']) . '/';
     if (isset($this->configs['css'])) {
@@ -80,8 +75,13 @@ class Component {
     }
     $renderer = include($filepath);
 
-    // Allow access.
+    // Allow external access.
     drupal_alter('components_render', $this, $data);
+
+    // Add inherant details.
+    $data = array_merge($data, array(
+      'modifier_class' => preg_replace('/^(\.|#)/', '', $this->modifier)
+    ));
 
     return $renderer($data);
   }
@@ -133,7 +133,7 @@ class Component {
    *
    * @return string $modifier
    */
-  public function getModifier($modifier) {
+  public function getModifier() {
     return $this->modifier;
   }
 

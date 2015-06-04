@@ -12,7 +12,7 @@ function components_settings() {
 
     'components_directory' => array(
       '#type' => 'textfield',
-      '#title' => 'Component directory',
+      '#title' => 'Directory',
       '#description' => t('Folder location of site components (default: !folder).',
         array('!folder' => COMPONENTS_DIRECTORY
       )),
@@ -22,8 +22,11 @@ function components_settings() {
     'components_assets' => array(
       '#type' => 'textfield',
       '#title' => 'Compiled assets directory',
-      '#description' => t('Folder location of compiled site components CSS and javascript (default: !folder). Files should be named: style.css and script.js',
-        array('!folder' => COMPONENTS_COMPILED_ASSETS
+      '#description' => t('Folder location of compiled site components CSS and javascript (default: !folder).', array(
+          '!folder' => COMPONENTS_COMPILED_ASSETS)
+        ) . '<br>' . t('Filenames should be: !css and !js', array(
+          '!css' => '<code>' . COMPONENTS_COMPILED_CSS . '</code>',
+          '!js' => '<code>' . COMPONENTS_COMPILED_JS . '</code>'
       )),
       '#default_value' => variable_get('components_assets', COMPONENTS_COMPILED_ASSETS),
     ),

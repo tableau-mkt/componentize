@@ -1,5 +1,5 @@
 name = Components API
-description = TODO
+description = Integrate your well-structured styleguide with Drupal.
 core = 7.x
 dependencies[] = composer_manager
 configure = admin/config/components

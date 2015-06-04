@@ -16,14 +16,15 @@ class context_reaction_component_alter extends context_reaction {
     $form['component'] = array(
       '#title' => t('Component'),
       '#type' => 'select',
-      '#options' => drupal_map_assoc(components_list()),
-      '#default_value' => $values['elements']['component'],
+      '#options' => drupal_map_assoc(components_list(TRUE)),
+      '#default_value' => $values['component'],
       '#weight' => 1,
     );
     $form['modifier'] = array(
       '#title' => t('Modifier'),
-      '#type' => 'text',
-      '#default_value' => $values['elements']['modifier'],
+      '#type' => 'textfield',
+      '#default_value' => $values['modifier'],
+      '#maxlength' => 256,
       '#size' => 20,
       '#weight' => 2,
     );
@@ -35,15 +36,15 @@ class context_reaction_component_alter extends context_reaction {
   /**
    * {@inheritdoc}
    */
-  public function execute(&$component) {
+  public function execute(&$component, &$data) {
     // Work through all contexts.
     $contexts = $this->get_contexts();
     foreach ($contexts as $context) {
       if (!empty($context->reactions[$this->plugin])) {
         // Relavant component check.
         $options = $context->reactions[$this->plugin];
-        if ($options['component'] === $component->getName) {
-          $this->alter($options, $component);
+        if ($options['component'] === $component->getName()) {
+          $this->alter($options, $component, $data);
         }
       }
     }
@@ -60,7 +61,7 @@ class context_reaction_component_alter extends context_reaction {
    * @param Component $component
    *   Component object about to be rendered.
    */
-  private function alter($options, &$component) {
+  private function alter($options, &$component, &$data) {
     if (isset($options['modifier'])) {
       $component->setModifier($options['modifier']);
     }

@@ -46,7 +46,7 @@ function hook_components_list_alter(&$list, $shallow) {
  * @param array &$data
  *   Key/value array of template variables.
  */
-function hook_components_render_alter($component, &$data) {
+function hook_components_render_alter(&$component, &$data) {
   if ($component->getName() === 'my_component') {
     $data['special_text'] = t('My Special Text');
   }

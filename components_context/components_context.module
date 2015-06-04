@@ -39,12 +39,12 @@ function components_context_context_plugins() {
 }
 
 /**
- * Implements hook_components_render().
+ * Implements hook_components_render_alter().
  *
  * Allow altering component modifiers by active contexts' options.
  */
-function components_context_components_render($component, &$data)
+function components_context_components_render_alter(&$component, &$data) {
   if ($plugin = context_get_plugin('reaction', 'component_alter')) {
-    $plugin->execute($component);
+    $plugin->execute($component, $data);
   }
 }
