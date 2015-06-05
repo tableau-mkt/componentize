@@ -18,6 +18,7 @@ class ComponentFactory {
       'path' => variable_get('components_directory', COMPONENTS_DIRECTORY),
       'storage' => variable_get('components_storage', 1),
       'module' => 'components',
+      'reset' => FALSE,
     );
 
     // @todo Avoid even creating the styleguide if everything is already in storage.

@@ -1,7 +1,16 @@
-<div class="badge {{modifier_class}}">
+<div class="badge {{ modifier_class }}">
   <div class="badge__content">
-    <h2>{{title}}</h2>
-    <h1>{{number}}</h1>
-    <p><strong>{{tagline_label}}</strong> {{{tagline}}}</p>
+    <h2>{{ title }}</h2>
+    <h1>{{ number }}</h1>
+    <p><strong>{{ tagline_label }}:</strong></p>
+
+    {{#if tagline}}
+    <ul>
+      {{#each tagline}}
+      <li>{{{ . }}}</lli>
+      {{/each}}
+    </ul>
+    {{/if}}
+
   </div>
 </div>

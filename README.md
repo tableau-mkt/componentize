@@ -13,7 +13,7 @@ Prefer to organzie your styles into components?  Want to use [Handlebars](http:/
   * `$conf['composer_manager_vendor_dir'] = 'vendor';`
   * `$conf['composer_manager_file_dir'] = './';`
 1. Build your project root composer config: `drush composer-json-rebuild`
-1. Get library dependencies via `drush composer install --prefer-dist`
+1. Get library dependencies via `drush composer install --prefer-dist --prefer-stable`
   * [KSS-PHP](https://github.com/scaninc/kss-php), KSS component parser for PHP
   * [Lightncandy](https://github.com/zordius/lightncandy), Handlebars rendering
 1. Drupal dependencies (for sub-modules)
@@ -24,7 +24,7 @@ Prefer to organzie your styles into components?  Want to use [Handlebars](http:/
 1. Create a `/sites/all/components` folder.
 1. Drop in a few components, see examples.
 1. Install Drupal module via Drush or admin UI.
-1. Visit the admin page (`admin/structure/components`), alter include paths if desired and choose cache aggresiveness for tracking component data.
+1. Visit the admin page (`admin/structure/components`), alter include paths if desired and choose cache aggresiveness for tracking component data.  Save settings once to generate components from your stylguide if you are using caching.
 
 ### Fieldgroup Config
 1. Edit a content-type field display settings. Add a fieldgroup as Component, chose the component and optionally modifier.
@@ -39,6 +39,7 @@ Prefer to organzie your styles into components?  Want to use [Handlebars](http:/
 
 ### Recommended Companions
 1. [CCK Blocks](https://www.drupal.org/project/cck_blocks) -- Turn your fieldgroup into a block on the node page.
+1. [Title field UI](https://www.drupal.org/project/title_field_ui) or -- [Title](https://www.drupal.org/project/title) -- control title via field admin.
 
 
 ## Workflow

@@ -66,9 +66,11 @@ class Component {
       drupal_add_css($path . $this->configs['js']);
     }
 
+
+
     // Stash compiled (PHP) version of template.
     $filepath = $this->template_dir . '/' . $this->namespace . '.php';
-    if (!file_exists($filepath) || $this->configs['storage'] === 'none') {
+    if (!file_exists($filepath) || $this->configs['storage'] === 'none' || $this->configs['reset']) {
       $handlebar = new LightnCandy();
       $compiled = $handlebar->compile($this->template);
       file_unmanaged_save_data($compiled, $filepath, FILE_EXISTS_REPLACE);
@@ -281,13 +283,17 @@ class Component {
    * @todo Retrieve as entities.
    */
   private function retrieve() {
+    if ($this->configs['reset']) {
+      return array();
+    }
+
     switch ($this->configs['storage']) {
       case 'variable':
-        variable_get('components_' . $this->namespace);
+        return variable_get('components_' . $this->namespace);
         break;
 
       case 'cache':
-        cache_get('components_' . $this->namespace);
+        return cache_get('components_' . $this->namespace, 'cache');
         break;
 
       default:

@@ -6,9 +6,6 @@
 use Component\ComponentFactory;
 use Component\ParserKSSnode;
 
-//use Components\Component;
-require('lib/component.php');
-
 define('COMPONENTS_DIRECTORY', 'sites/all/components');
 define('COMPONENTS_COMPILED_ASSETS', 'sites/all/components/dist');
 define('COMPONENTS_COMPILED_TEMPLATES', 'sites/default/files/components');
@@ -19,7 +16,8 @@ define('COMPONENTS_COMPILED_JS', 'script.js');
  * Implements hook_menu().
  */
 function components_menu() {
-  $items['admin/structure/components'] = array(
+  $path = 'admin/structure/components';
+  $items[$path] = array(
     'title' => 'Components',
     'description' => 'Browse available component structure.',
     'access arguments' => array('access components library'),
@@ -31,7 +29,7 @@ function components_menu() {
     'type' => MENU_DEFAULT_LOCAL_TASK,
   );
 
-  $items['admin/structure/components/settings'] = array(
+  $items[$path . '/settings'] = array(
     'title' => 'Settings',
     'description' => 'Configure component structure.',
     'type' => MENU_LOCAL_TASK,
@@ -161,7 +159,7 @@ function components_list($shallow = FALSE, $reset = FALSE) {
     $list_full = array();
     $factory = new ComponentFactory;
     foreach ($list as $key => $component) {
-      $list_full[$component] = $factory->create($component, array());
+      $list_full[$component] = $factory->create($component, array('reset' => $reset));
       // Clear storage and compiled templates.
       if ($reset) {
         $list_full[$component]->remove();
