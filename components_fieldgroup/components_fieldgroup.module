@@ -37,6 +37,7 @@ function components_field_types() {
     'text_default',
     'text_plain',
     'number_integer',
+    'text_trimmed',
   );
 }
 
