@@ -221,29 +221,29 @@ function theme_components_fieldgroup($variables) {
   // Find variables for templates in fields.
   $template_vars = array();
   $entity_object = FALSE;
-  $element = $variables['element'];
-  foreach ($element['#children'] as $field_name) {
+  foreach ($variables['element']['#children'] as $field_name) {
+    $field_elm = $variables['element'][$field_name];
 
     // Load it once from a field.
-    $entity_object = $entity_object ?: $element[$field_name]['#object'];
+    $entity_object = $entity_object ?: $field_elm['#object'];
 
     // Get data from field settings within group.
     $instance = field_info_instance(
-      $element[$field_name]['#entity_type'], $field_name, $element[$field_name]['#bundle']
+      $field_elm['#entity_type'], $field_name, $field_elm['#bundle']
     );
-    $variable_map = $instance['display'][$element['#view_mode']]['settings']['components_fieldgroup_variable_name'];
-    $via_template = TRUE; //$element[$field_name]['#settings']['components_fieldgroup_via_template'];
+    $variable_map = $instance['display'][$variables['element']['#view_mode']]['settings']['components_fieldgroup_variable_name'];
+    $via_template = TRUE; //$field_elm['#settings']['components_fieldgroup_via_template'];
 
     // Field type handling done by pluggable class.
     $field_info = field_info_field($field_name);
-    $type = $element[$field_name]['#field_type'];
+    $type = $field_elm['#field_type'];
     $handler = FALSE;
     if ($via_template) {
       $component_types = components_fieldgroup_field_types();
       $class_name = isset($component_types[$type]) ? $component_types[$type] : COMPONENTS_DEFAULT_FIELD_HANDLER;
       // Load class.
       if (class_exists($class_name)) {
-        $handler = new $class_name($type, $element[$field_name]['#formatter'], $element[$field_name], $field_info);
+        $handler = new $class_name($type, $field_elm['#formatter'], $field_elm, $field_info);
       }
       else {
         watchdog('components', 'Missing class: !class', array('!class' => $class_name), WATCHDOG_ERROR);
@@ -253,7 +253,7 @@ function theme_components_fieldgroup($variables) {
 
     // Render field.
     $template_vars[$variable_map] = _components_render_field(
-      $field_name, $field_info, $element, $entity_object, $handler
+      $field_name, $field_info, $variables['element'], $entity_object, $handler
     );
 
     // Add field label to variables for all types.
@@ -262,11 +262,11 @@ function theme_components_fieldgroup($variables) {
 
   // Pass data through template.
   $factory = new ComponentFactory;
-  $component = $factory->create($element['#settings']['component']);
+  $component = $factory->create($variables['element']['#settings']['component']);
 
   // Make modifier available in the template.
   if (isset($element['#settings']['modifier'])) {
-    $component->setModifier($element['#settings']['modifier']);
+    $component->setModifier($variables['element']['#settings']['modifier']);
   }
 
   return $component->render($template_vars);
