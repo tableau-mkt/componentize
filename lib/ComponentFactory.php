@@ -3,8 +3,9 @@
  * @file Web component object for Drupal, uses Handlebars and SASS.
  */
 
-namespace Component;
-use Component\ParserKSSnode;
+namespace Components;
+
+use Components\ParserKSSnode;
 
 class ComponentFactory {
 

@@ -3,7 +3,7 @@
  * @file Web component object for Drupal, uses Handlebars and SASS.
  */
 
-namespace Component;
+namespace Components;
 use LightnCandy;
 
 class Component {

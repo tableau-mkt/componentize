@@ -1,5 +1,5 @@
 name = Components Fieldgroup
-description = Render fieldgroup through a component template in Handlebars.
+description = Render content fieldgroups through a component.
 core = 7.x
 dependencies[] = components
 dependencies[] = ctools

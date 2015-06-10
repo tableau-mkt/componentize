@@ -3,8 +3,8 @@
  * @file Style-guide component integration.
  */
 
-use Component\ComponentFactory;
-use Component\ParserKSSnode;
+use Components\ComponentFactory;
+use Components\ParserKSSnode;
 
 define('COMPONENTS_DIRECTORY', 'sites/all/components');
 define('COMPONENTS_COMPILED_ASSETS', 'sites/all/components/dist');
@@ -81,42 +81,6 @@ function components_preprocess_page(&$variables) {
 
 
 /**
- * Implements hook_block_info().
- *
- * @return array
- */
-// function components_block_info() {
-//   $block_config = variable_get('components_blocks', array());
-//   $block_list = array_intersect_key($block_config, _component_list());
-
-//   foreach ($block_list as $component) {
-//     $attached = array();
-//     if ($component->js) {
-//       $attached[] = variable_get('components_directory', COMPONENTS_DIRECTORY) .
-//           '/' . $component->getName() . '.js';
-//     }
-
-//     $blocks['components-' . $component->getNamespace() = array(
-//       'info' => $component->getName(),
-//       '#markup' => _components_block_content($component->getName()),
-//       'cache' => DRUPAL_NO_CACHE,
-//       '#attached' => array('js' => $attached),
-//     );
-//   }
-
-//   return $blocks;
-// }
-
-
-/**
- * Generate content of component blocks.
- */
-// function _components_block_content($name) {
-//   return $name;
-// }
-
-
-/**
  * Provide list of components, via parsing directory or stashed variable.
  *
  * @todo Nested components (accordian + accordian item).
@@ -174,3 +138,18 @@ function components_list($shallow = FALSE, $reset = FALSE) {
 
   return $list;
 }
+
+
+/**
+ * Make a classname from a field format name.
+ */
+// function components_classname($parent, $format) {
+//   $name = &drupal_static(__FUNCTION__ . $format);
+
+//   // Make it pascalCased from D7 norm.
+//   $possible = $parent . str_replace(' ', '', ucwords(preg_replace('/(_|-)/', ' ', $format)));
+//   // Confirm it exists.
+//   $name = class_exists($possible) ? $possible : $parent;
+
+//   return $name;
+// }

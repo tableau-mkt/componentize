@@ -21,6 +21,7 @@ Prefer to organzie your styles into components?  Want to use [Handlebars](http:/
   * [Field Group](http://www.drupal.org/project/field_group)
   * [Field formatter settings](http://www.drupal.org/project/field_formatter_settings)
   * [Context](http://www.drupal.org/project/context)
+  * [Entity view modes](https://www.drupal.org/project/entity_view_mode)
 1. Create a `/sites/all/components` folder.
 1. Drop in a few components, see examples.
 1. Install Drupal module via Drush or admin UI.
@@ -36,6 +37,10 @@ Prefer to organzie your styles into components?  Want to use [Handlebars](http:/
 1. Add a Context condition reaction "Component Alter".
 1. Set the component.
 1. Set the modifier and save.
+
+### Entity View Modes Config
+1. Add a custom view mode to an entity bundle.
+1. Choose a component within the view mode settings.
 
 ### Recommended Companions
 1. [CCK Blocks](https://www.drupal.org/project/cck_blocks) -- Turn your fieldgroup into a block on the node page.

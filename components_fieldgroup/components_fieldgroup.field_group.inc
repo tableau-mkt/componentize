@@ -1,6 +1,6 @@
 <?php
 /**
- * @file Fieldgroup management.
+ * @file Fieldgroup settings management.
  */
 
 define('COMPONENTS_LABEL_HIDDEN', 1);
