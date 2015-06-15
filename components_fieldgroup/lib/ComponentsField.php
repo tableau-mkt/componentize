@@ -3,7 +3,7 @@
  * @file Field handler: default text.
  */
 
-//namespace Components;
+namespace Components;
 
 class ComponentsField {
 

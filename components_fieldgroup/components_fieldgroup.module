@@ -4,10 +4,10 @@
  */
 
 use Components\ComponentFactory;
-//use Components\ComponentsField;
-require('lib/ComponentsField.php'); #TEMPORARY: WAT?!
+use Components\ComponentsField;
 
-define('COMPONENTS_DEFAULT_FIELD_HANDLER', 'ComponentsField');
+define('COMPONENTS_NAMESPACE', 'Components');
+define('COMPONENTS_FIELD_HANDLER_DEFAULT', 'ComponentsField');
 
 /**
  * Implements hook_ctools_plugin_api().
@@ -54,13 +54,13 @@ function components_fieldgroup_field_types() {
 function components_components_fieldgroup_field_types_info() {
   //'formatters' => array('text_default', 'text_plain', 'text_trimmed', 'text_summary_or_trimmed'),
   return array(
-    'text' => COMPONENTS_DEFAULT_FIELD_HANDLER,
-    'text_long' => COMPONENTS_DEFAULT_FIELD_HANDLER,
-    'text_with_summary' => COMPONENTS_DEFAULT_FIELD_HANDLER,
-    'number_integer' => 'ComponentsFieldNumber',
-    'number_decimal' => 'ComponentsFieldNumber',
-    'number_unformatted' => 'ComponentsFieldNumber',
-    'file' => 'ComponentsFieldFile',
+    'text' =>               COMPONENTS_NAMESPACE . '\\' . COMPONENTS_FIELD_HANDLER_DEFAULT,
+    'text_long' =>          COMPONENTS_NAMESPACE . '\\' . COMPONENTS_FIELD_HANDLER_DEFAULT,
+    'text_with_summary' =>  COMPONENTS_NAMESPACE . '\\' . COMPONENTS_FIELD_HANDLER_DEFAULT,
+    'number_integer' =>     COMPONENTS_NAMESPACE . '\ComponentsFieldNumber',
+    'number_decimal' =>     COMPONENTS_NAMESPACE . '\ComponentsFieldNumber',
+    'number_unformatted' => COMPONENTS_NAMESPACE . '\ComponentsFieldNumber',
+    'file' =>               COMPONENTS_NAMESPACE . '\ComponentsFieldFile',
   );
 }
 

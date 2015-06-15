@@ -138,18 +138,3 @@ function components_list($shallow = FALSE, $reset = FALSE) {
 
   return $list;
 }
-
-
-/**
- * Make a classname from a field format name.
- */
-// function components_classname($parent, $format) {
-//   $name = &drupal_static(__FUNCTION__ . $format);
-
-//   // Make it pascalCased from D7 norm.
-//   $possible = $parent . str_replace(' ', '', ucwords(preg_replace('/(_|-)/', ' ', $format)));
-//   // Confirm it exists.
-//   $name = class_exists($possible) ? $possible : $parent;
-
-//   return $name;
-// }
