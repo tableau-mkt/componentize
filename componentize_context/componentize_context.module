@@ -9,7 +9,7 @@
  *
  * Tried to keep naming insanity to a minimum.
  */
-function components_context_context_registry() {
+function componentize_context_context_registry() {
   $registry['reactions'] = array(
     'component_alter' => array(
       'title' => t('Component Alter'),
@@ -25,10 +25,10 @@ function components_context_context_registry() {
 /**
  * Implements hook_context_plugins().
  */
-function components_context_context_plugins() {
+function componentize_context_context_plugins() {
   $plugins['context_reaction_component_alter'] = array(
     'handler' => array(
-      'path' => drupal_get_path('module', 'components_context'),
+      'path' => drupal_get_path('module', 'componentize_context'),
       'file' => 'context_reaction_component_alter.context.inc',
       'class' => 'context_reaction_component_alter',
       'parent' => 'context_reaction',
@@ -39,12 +39,12 @@ function components_context_context_plugins() {
 }
 
 /**
- * Implements hook_components_render_alter().
+ * Implements hook_componentize_render_alter().
  *
  * Allow altering component modifiers by active contexts' options.
  */
-function components_context_components_render_alter(&$component, &$data) {
-  if ($plugin = context_get_plugin('reaction', 'component_alter')) {
+function componentize_context_componentize_render_alter(&$component, &$data) {
+  if ($plugin = context_get_plugin('reaction', 'componentize_alter')) {
     $plugin->execute($component, $data);
   }
 }

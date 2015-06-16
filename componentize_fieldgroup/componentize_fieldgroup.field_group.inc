@@ -3,19 +3,15 @@
  * @file Fieldgroup settings management.
  */
 
-define('COMPONENTS_LABEL_HIDDEN', 1);
-define('COMPONENTS_LABEL_ABOVE', 2);
-define('COMPONENTS_LABEL_CAPTION', 3);
-
 /**
  * Implements hook_field_group_formatter_info().
  *
  * @todo Avoid showing up in form admin.
  */
-function components_fieldgroup_field_group_formatter_info() {
+function componentize_fieldgroup_field_group_formatter_info() {
   return array(
     'display' => array(
-      'components_fieldgroup' => array(
+      'component_fieldgroup' => array(
         'label' => t('Component'),
         'descripton' => t("This fieldgroup renders the inner content using the selected Component's structure"),
         'instance_settings' => array(
@@ -37,7 +33,7 @@ function components_fieldgroup_field_group_formatter_info() {
  * @return array $form
  *   The form element for the format settings.
  */
-function components_fieldgroup_field_group_format_settings($group) {
+function componentize_fieldgroup_field_group_format_settings($group) {
   $mode = ($group->mode === 'form') ? 'form' : 'display';
   if ($mode === 'form') return;
 
@@ -49,23 +45,23 @@ function components_fieldgroup_field_group_format_settings($group) {
 
   // Add optional instance_settings.
   switch ($group->format_type) {
-    case 'components_fieldgroup':
+    case 'component_fieldgroup':
 
       $form['instance_settings']['component'] = array(
         '#title' => t('Component'),
         '#type' => 'select',
-        '#options' => drupal_map_assoc(components_list(TRUE)),
-        '#default_value' => _components_fieldgroup_settings_default($group, 'component'),
+        '#options' => drupal_map_assoc(componentize_list(TRUE)),
+        '#default_value' => componentize_fieldgroup_settings_default($group, 'component'),
         '#weight' => 1,
       );
 
       $form['instance_settings']['modifier'] = array(
         '#title' => t('Modifier'),
         '#type' => 'fieldgroup',
-        '#element_validate' => array('components_fieldgroup_single_modifier_validate'),
+        '#element_validate' => array('componentize_fieldgroup_single_modifier_validate'),
         '#weight' => 2,
       );
-      foreach (components_list() as $component) {
+      foreach (componentize_list() as $component) {
         //Separate list for each components' modifiers.
         $form['instance_settings']['modifier'][$component->getName()] = array(
           '#title' => $component->getName() . ' Modifier',
@@ -76,7 +72,7 @@ function components_fieldgroup_field_group_format_settings($group) {
               ':input[name$="[component]"]' => array('value' => $component->getName()),
             ),
           ),
-          '#default_value' => _components_fieldgroup_settings_default($group, 'modifier'),
+          '#default_value' => componentize_fieldgroup_settings_default($group, 'modifier'),
         );
       }
 
@@ -90,7 +86,7 @@ function components_fieldgroup_field_group_format_settings($group) {
 /**
  * Get the settings detault.
  */
-function _components_fieldgroup_settings_default($group, $property) {
+function componentize_fieldgroup_settings_default($group, $property) {
   if (isset($group->format_settings['instance_settings'][$property])) {
     return $group->format_settings['instance_settings'][$property];
   }
@@ -100,20 +96,20 @@ function _components_fieldgroup_settings_default($group, $property) {
 
 /**
  * Implements field_group_pre_render_<format-type>.
- * Format: components_fieldgroup
+ * Format: component_fieldgroup
  *
  * @param array &$element
  * @param array $group
  * @param array &$form
  */
-function field_group_pre_render_components_fieldgroup(&$element, $group, &$form) {
+function field_group_pre_render_component_fieldgroup(&$element, $group, &$form) {
   // @todo May want to access the label position within the template.
   // $element['#label_display']
 
   // Add necessary items to variables within theme function.
   $element += array(
-    '#type' => 'components_fieldgroup',
-    '#theme' => 'components_fieldgroup',
+    '#type' => 'component_fieldgroup',
+    '#theme' => 'componentize_fieldgroup',
     '#title' => t($group->label),
     '#description' => $group->description,
     '#parents' => array($group->parent_name),

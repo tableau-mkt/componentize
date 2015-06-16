@@ -1,9 +1,9 @@
 <?php
 /**
- * @file Web component object for Drupal, uses Handlebars and SASS.
+ * @file Component object for Drupal use, uses Handlebars and SASS.
  */
 
-namespace Components;
+namespace Componentize;
 use LightnCandy;
 
 class Component {
@@ -27,7 +27,7 @@ class Component {
     $this->styleguide = $styleguide;
 
     // Common.
-    $this->template_dir = variable_get('components_templates', COMPONENTS_COMPILED_TEMPLATES);
+    $this->template_dir = variable_get('componentize_templates', COMPONENTIZE_COMPILED_TEMPLATES);
 
     // Full storage namespace.
     $this->namespace = $this->configs['module'] . '-' .  $this->name;
@@ -52,7 +52,7 @@ class Component {
     // Double check folder.
     if (!file_prepare_directory($this->template_dir, FILE_CREATE_DIRECTORY | FILE_MODIFY_PERMISSIONS)) {
       drupal_set_message(t(
-        'Unable to create Components template cache directory. Check the permissions on your files directory.'
+        'Unable to create component template cache directory. Check the permissions on your files directory.'
       ), 'error');
       return;
     }
@@ -63,10 +63,8 @@ class Component {
       drupal_add_css($path . $this->configs['css']);
     }
     if (isset($this->configs['js'])) {
-      drupal_add_css($path . $this->configs['js']);
+      drupal_add_js($path . $this->configs['js']);
     }
-
-
 
     // Stash compiled (PHP) version of template.
     $filepath = $this->template_dir . '/' . $this->namespace . '.php';
@@ -78,7 +76,7 @@ class Component {
     $renderer = include($filepath);
 
     // Allow external access.
-    drupal_alter('components_render', $this, $data);
+    drupal_alter('componentize_render', $this, $data);
 
     // Add inherant details.
     $data = array_merge($data, array(
@@ -250,7 +248,7 @@ class Component {
     }
     else {
       drupal_set_message(t(
-        'Web component file missing: @file', array('@file' => $filepath)
+        'Component file missing: @file', array('@file' => $filepath)
       ), 'warning');
       return FALSE;
     }
@@ -267,11 +265,11 @@ class Component {
   private function save($data) {
     switch ($this->configs['storage']) {
       case 'variable':
-        variable_set('components_' . $this->namespace, $data);
+        variable_set('componentize_' . $this->namespace, $data);
         break;
 
       case 'cache':
-        cache_set('components_' . $this->namespace, $data);
+        cache_set('componentize_' . $this->namespace, $data);
         break;
     }
   }
@@ -289,11 +287,11 @@ class Component {
 
     switch ($this->configs['storage']) {
       case 'variable':
-        return variable_get('components_' . $this->namespace);
+        return variable_get('componentize_' . $this->namespace);
         break;
 
       case 'cache':
-        return cache_get('components_' . $this->namespace, 'cache');
+        return cache_get('componentize_' . $this->namespace, 'cache');
         break;
 
       default:

@@ -1,5 +1,5 @@
-name = Components Context
+name = Componentize Context
 description = Alter components based on context.
 core = 7.x
-dependencies[] = components
+dependencies[] = componentize
 dependencies[] = context

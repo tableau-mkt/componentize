@@ -1,7 +1,7 @@
-name = Components Fieldgroup
+name = Componentize Fieldgroup
 description = Render content fieldgroups through a component.
 core = 7.x
-dependencies[] = components
+dependencies[] = componentize
 dependencies[] = ctools
 dependencies[] = field_group
 dependencies[] = field_formatter_settings

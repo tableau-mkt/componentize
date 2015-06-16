@@ -3,9 +3,9 @@
  * @file Field handler: number
  */
 
-namespace Components;
+namespace Componentize;
 
-class ComponentsFieldNumber extends ComponentsField {
+class ComponentFieldNumber extends ComponentField {
 
   /**
    * Variables from field value(s): number.

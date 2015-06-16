@@ -1,6 +1,6 @@
 <?php
 /**
- * @file Context reaction class for component modifiers.
+ * @file Context reaction for component alteration.
  */
 
 
@@ -16,7 +16,7 @@ class context_reaction_component_alter extends context_reaction {
     $form['component'] = array(
       '#title' => t('Component'),
       '#type' => 'select',
-      '#options' => drupal_map_assoc(components_list(TRUE)),
+      '#options' => drupal_map_assoc(componentize_list(TRUE)),
       '#default_value' => $values['component'],
       '#weight' => 1,
     );

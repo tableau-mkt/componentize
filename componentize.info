@@ -1,0 +1,5 @@
+name = Componentize!
+description = Integrate your well-structured style guide with Drupal.
+core = 7.x
+dependencies[] = composer_manager
+configure = admin/config/componentize

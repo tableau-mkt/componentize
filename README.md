@@ -1,4 +1,4 @@
-# Components API
+# Componentize!
 
 **Integrate your well-structured style guide with Drupal.**
 
@@ -22,10 +22,9 @@ Prefer to organzie your styles into components?  Want to use [Handlebars](http:/
   * [Field formatter settings](http://www.drupal.org/project/field_formatter_settings)
   * [Context](http://www.drupal.org/project/context)
   * [Entity view modes](https://www.drupal.org/project/entity_view_mode)
-1. Create a `/sites/all/components` folder.
-1. Drop in a few components, see examples.
+1. Create a `/sites/all/components` folder, and drop in a few components, see examples.
 1. Install Drupal module via Drush or admin UI.
-1. Visit the admin page (`admin/structure/components`), alter include paths if desired and choose cache aggresiveness for tracking component data.  Save settings once to generate components from your stylguide if you are using caching.
+1. Visit the admin page (`admin/structure/componentize`), alter include paths if desired and choose cache aggresiveness for tracking component data.  Save settings once to generate components from your stylguide if you are using caching.
 
 ### Fieldgroup Config
 1. Edit a content-type field display settings. Add a fieldgroup as Component, chose the component and optionally modifier.
@@ -50,8 +49,8 @@ Prefer to organzie your styles into components?  Want to use [Handlebars](http:/
 ## Workflow
 You may want to keep your components in a separate repo from your site code and theme.  For convenience set the local development location of your component library to somewhere outside your Drupal site code...
 ```php
-$conf['components_assets'] = './my_components';
-$conf['components_assets'] = './my_components/dist';
+$conf['componentize_directory'] = './my_components';
+$conf['componentize_assets'] = './my_components/dist';
 ```
 
 
@@ -63,7 +62,7 @@ This module allows you to refer to components written in front-end code and rend
 1. Alter an existing component based on conditions, like it's modifier.
 1. Add or alter variable data before it is rendered through the template.
 
-#### Please see: [components.api.php](https://github.com/tableau-mkt/components_module/blob/7.x-1.x/components.api.php)
+#### Please see: [componentize.api.php](https://github.com/tableau-mkt/componentize/blob/7.x-1.x/componentize.api.php)
 
 One quick example...
 

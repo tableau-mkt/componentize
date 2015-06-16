@@ -3,7 +3,7 @@
  * Override the Parser methods to allow KSS-node syntax.
  */
 
-namespace Components;
+namespace Componentize;
 use Scan\Kss\Parser;
 
 class ParserKSSnode extends Parser {

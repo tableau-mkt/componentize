@@ -1,6 +1,6 @@
 <?php
 /**
- * @file API documentation for Components.
+ * @file API documentation for Componentize.
  */
 
 
@@ -12,9 +12,9 @@
  * @param boolean $shallow
  *   Either return an array of strings or objects.
  *
- * @see _components_list_alter()
+ * @see componentize_list()
  */
-function hook_components_list_alter(&$list, $shallow) {
+function hook_componentize_list_alter(&$list, $shallow) {
   if ($shallow) {
     // Just add yours to the array.
     $list[] = 'my_component';
@@ -46,7 +46,7 @@ function hook_components_list_alter(&$list, $shallow) {
  * @param array &$data
  *   Key/value array of template variables.
  */
-function hook_components_render_alter(&$component, &$data) {
+function hook_componentize_render_alter(&$component, &$data) {
   if ($component->getName() === 'my_component') {
     $data['special_text'] = t('My Special Text');
   }

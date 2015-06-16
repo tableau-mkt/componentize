@@ -6,7 +6,7 @@
 /**
  * Menu callback for viewing available components.
  */
-function _components_library_output() {
+function componentize_library_output() {
   $table = array(
     'attributes' => array(),
     'colgroups' => array(),
@@ -29,7 +29,7 @@ function _components_library_output() {
 
   // List all components.
   $table['rows'] = array();
-  foreach (components_list() as $component) {
+  foreach (componentize_list() as $component) {
     $table['rows'][] = array(array(
         'data' => $component->getSection(),
         'field' => 'section',

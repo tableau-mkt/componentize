@@ -3,26 +3,26 @@
  * @file Style-guide component integration.
  */
 
-use Components\ComponentFactory;
-use Components\ParserKSSnode;
+use Componentize\ComponentFactory;
+use Componentize\ParserKSSnode;
 
-define('COMPONENTS_DIRECTORY', 'sites/all/components');
-define('COMPONENTS_COMPILED_ASSETS', 'sites/all/components/dist');
-define('COMPONENTS_COMPILED_TEMPLATES', 'sites/default/files/components');
-define('COMPONENTS_COMPILED_CSS', 'style.css');
-define('COMPONENTS_COMPILED_JS', 'script.js');
+define('COMPONENTIZE_DIRECTORY', 'sites/all/components');
+define('COMPONENTIZE_COMPILED_ASSETS', 'sites/all/components/dist');
+define('COMPONENTIZE_COMPILED_TEMPLATES', 'sites/default/files/components');
+define('COMPONENTIZE_COMPILED_CSS', 'style.css');
+define('COMPONENTIZE_COMPILED_JS', 'script.js');
 
 /**
  * Implements hook_menu().
  */
-function components_menu() {
-  $path = 'admin/structure/components';
+function componentize_menu() {
+  $path = 'admin/structure/componentize';
   $items[$path] = array(
     'title' => 'Components',
     'description' => 'Browse available component structure.',
-    'access arguments' => array('access components library'),
-    'page callback' => '_components_library_output',
-    'file' => 'components.library.inc'
+    'access arguments' => array('access component library'),
+    'page callback' => 'componentize_library_output',
+    'file' => 'componentize.library.inc'
   );
   $items[$path . '/library'] = array(
     'title' => 'Library',
@@ -35,8 +35,8 @@ function components_menu() {
     'type' => MENU_LOCAL_TASK,
     'access arguments' => array('administer site configuration'),
     'page callback' => 'drupal_get_form',
-    'page arguments' => array('components_settings'),
-    'file' => 'components.admin.inc'
+    'page arguments' => array('componentize_settings'),
+    'file' => 'componentize.admin.inc'
   );
 
   return $items;
@@ -46,7 +46,7 @@ function components_menu() {
 /**
  * Implements hook_perm().
  */
-function components_permission() {
+function componentize_permission() {
   return array(
     'access components library' => array(
       'title' => t('Visit Components Library'),
@@ -59,20 +59,20 @@ function components_permission() {
 /**
  * Implments hook_preprocess_page().
  */
-function components_preprocess_page(&$variables) {
-  $assets_dir = variable_get('components_assets', COMPONENTS_COMPILED_ASSETS);
+function componentize_preprocess_page(&$variables) {
+  $assets_dir = variable_get('componentize_assets', COMPONENTIZE_COMPILED_ASSETS);
 
   // Javascript.
-  if (file_exists($assets_dir . '/' . COMPONENTS_COMPILED_JS)) {
-    drupal_add_js($assets_dir . '/' . COMPONENTS_COMPILED_JS);
+  if (file_exists($assets_dir . '/' . COMPONENTIZE_COMPILED_JS)) {
+    drupal_add_js($assets_dir . '/' . COMPONENTIZE_COMPILED_JS);
   }
   else {
     drupal_set_message(t('Unable to find and include compiled Components javascript.'), 'warning');
   }
 
   // CSS.
-  if (file_exists($assets_dir . '/' . COMPONENTS_COMPILED_CSS)) {
-    drupal_add_css($assets_dir . '/' . COMPONENTS_COMPILED_CSS);
+  if (file_exists($assets_dir . '/' . COMPONENTIZE_COMPILED_CSS)) {
+    drupal_add_css($assets_dir . '/' . COMPONENTIZE_COMPILED_CSS);
   }
   else {
     drupal_set_message(t('Unable to find and include compiled Components styles.'), 'warning');
@@ -90,16 +90,16 @@ function components_preprocess_page(&$variables) {
  *
  * @return array
  */
-function components_list($shallow = FALSE, $reset = FALSE) {
+function componentize_list($shallow = FALSE, $reset = FALSE) {
   $list = &drupal_static(__FUNCTION__ . (($shallow) ? 'SHALLOW' : 'FULL'));
   $styleguide = &drupal_static(__FUNCTION__);
-  $dir = variable_get('components_directory', COMPONENTS_DIRECTORY);
+  $dir = variable_get('componentize_directory', COMPONENTIZE_DIRECTORY);
 
   // Use the stored variable.
   if (isset($list) && !$reset) return $list;
 
   // Get the list, try via variable.
-  $list = variable_get('components_list', array());
+  $list = variable_get('componentize_list', array());
   if (empty($list) && $reset) {
     // Parse all styles.
     $styleguide = new ParserKSSnode($dir);
@@ -110,10 +110,10 @@ function components_list($shallow = FALSE, $reset = FALSE) {
     }
     // Store results or complain.
     if (!empty($list)) {
-      variable_set('components_list', $list);
+      variable_set('componentize_list', $list);
     }
     else {
-      drupal_set_message('components', 'No web components found.', array(), 'warning');
+      drupal_set_message('componentize', 'No web components found.', array(), 'warning');
     }
   }
 
@@ -134,7 +134,7 @@ function components_list($shallow = FALSE, $reset = FALSE) {
   }
 
   // Allow adding custom components.
-  drupal_alter('components_list', $list, $shallow);
+  drupal_alter('componentize_list', $list, $shallow);
 
   return $list;
 }

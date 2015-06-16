@@ -3,9 +3,9 @@
  * @file Field handler: default text.
  */
 
-namespace Components;
+namespace Componentize;
 
-class ComponentsField {
+class ComponentField {
 
   public $type,
          $format,

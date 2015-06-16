@@ -3,9 +3,9 @@
  * @file Web component object for Drupal, uses Handlebars and SASS.
  */
 
-namespace Components;
+namespace Componentize;
 
-use Components\ParserKSSnode;
+use Componentize\ParserKSSnode;
 
 class ComponentFactory {
 
@@ -16,9 +16,9 @@ class ComponentFactory {
 
     // Honor passed, provide a default.
     $this->configs = $configs + array(
-      'path' => variable_get('components_directory', COMPONENTS_DIRECTORY),
-      'storage' => variable_get('components_storage', 1),
-      'module' => 'components',
+      'path' => variable_get('componentize_directory', COMPONENTIZE_DIRECTORY),
+      'storage' => variable_get('componentize_storage', 1),
+      'module' => 'componentize',
       'reset' => FALSE,
     );
 

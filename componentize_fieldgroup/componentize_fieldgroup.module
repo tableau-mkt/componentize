@@ -3,16 +3,16 @@
  * @file Render content fieldgroups through a component.
  */
 
-use Components\ComponentFactory;
-use Components\ComponentsField;
+use Componentize\ComponentFactory;
+use Componentize\ComponentsField;
 
-define('COMPONENTS_NAMESPACE', 'Components');
-define('COMPONENTS_FIELD_HANDLER_DEFAULT', 'ComponentsField');
+define('COMPONENTIZE_NAMESPACE', 'Componentize');
+define('COMPONENTIZE_FIELD_HANDLER_DEFAULT', 'ComponentField');
 
 /**
  * Implements hook_ctools_plugin_api().
  */
-function components_fieldgroup_ctools_plugin_api($module, $api) {
+function componentize_fieldgroup_ctools_plugin_api($module, $api) {
   if ($module == 'field_group' && $api == 'field_group') {
     return array('version' => 1);
   }
@@ -22,9 +22,9 @@ function components_fieldgroup_ctools_plugin_api($module, $api) {
 /**
  * Implements hook_theme().
  */
-function components_fieldgroup_theme() {
+function componentize_fieldgroup_theme() {
   return array(
-    'components_fieldgroup' => array(
+    'component_fieldgroup' => array(
       'render element' => 'element',
     ),
   );
@@ -36,31 +36,30 @@ function components_fieldgroup_theme() {
  *
  * @return array
  */
-function components_fieldgroup_field_types() {
+function componentize_fieldgroup_field_types() {
   $handlers = &drupal_static(__FUNCTION__);
   if (!$handlers) {
-    $handlers = module_invoke_all('components_fieldgroup_field_types_info');
-    drupal_alter('components_fieldgroup_field_types_info', $handlers);
+    $handlers = module_invoke_all('component_fieldgroup_field_types_info');
+    drupal_alter('component_fieldgroup_field_types_info', $handlers);
   }
   return $handlers;
 }
 
 
 /**
- * Implements hook_components_fieldgroup_field_types_info().
+ * Implements hook_component_fieldgroup_field_types_info().
  *
  * Register available field types.
  */
-function components_components_fieldgroup_field_types_info() {
-  //'formatters' => array('text_default', 'text_plain', 'text_trimmed', 'text_summary_or_trimmed'),
+function componentize_fieldgroup_component_fieldgroup_field_types_info() {
   return array(
-    'text' =>               COMPONENTS_NAMESPACE . '\\' . COMPONENTS_FIELD_HANDLER_DEFAULT,
-    'text_long' =>          COMPONENTS_NAMESPACE . '\\' . COMPONENTS_FIELD_HANDLER_DEFAULT,
-    'text_with_summary' =>  COMPONENTS_NAMESPACE . '\\' . COMPONENTS_FIELD_HANDLER_DEFAULT,
-    'number_integer' =>     COMPONENTS_NAMESPACE . '\ComponentsFieldNumber',
-    'number_decimal' =>     COMPONENTS_NAMESPACE . '\ComponentsFieldNumber',
-    'number_unformatted' => COMPONENTS_NAMESPACE . '\ComponentsFieldNumber',
-    'file' =>               COMPONENTS_NAMESPACE . '\ComponentsFieldFile',
+    'text' =>               COMPONENTIZE_NAMESPACE . '\\' . COMPONENTIZE_FIELD_HANDLER_DEFAULT,
+    'text_long' =>          COMPONENTIZE_NAMESPACE . '\\' . COMPONENTIZE_FIELD_HANDLER_DEFAULT,
+    'text_with_summary' =>  COMPONENTIZE_NAMESPACE . '\\' . COMPONENTIZE_FIELD_HANDLER_DEFAULT,
+    'number_integer' =>     COMPONENTIZE_NAMESPACE . '\ComponentFieldNumber',
+    'number_decimal' =>     COMPONENTIZE_NAMESPACE . '\ComponentFieldNumber',
+    'number_unformatted' => COMPONENTIZE_NAMESPACE . '\ComponentFieldNumber',
+    'file' =>               COMPONENTIZE_NAMESPACE . '\ComponentFieldFile',
   );
 }
 
@@ -72,14 +71,14 @@ function components_components_fieldgroup_field_types_info() {
  *
  * Add custom setting for field formatter types within fieldgroups.
  */
-function components_fieldgroup_field_formatter_info_alter(&$info) {
-  $types = array_keys(components_fieldgroup_field_types());
+function componentize_fieldgroup_field_formatter_info_alter(&$info) {
+  $types = array_keys(componentize_fieldgroup_field_types());
   foreach ($info as $format => $formatter) {
     // Field type is registered.
     if (array_intersect($formatter['field types'], $types)) {
       $info[$format]['settings'] += array(
-        'components_fieldgroup_variable_name' => '',
-        'components_fieldgroup_via_template' => '',
+        'componentize_fieldgroup_variable_name' => '',
+        'componentize_fieldgroup_via_template' => '',
       );
     }
   }
@@ -94,29 +93,28 @@ function components_fieldgroup_field_formatter_info_alter(&$info) {
  * @param array $settings_form
  * @param array $context
  */
-function components_fieldgroup_field_formatter_settings_form_alter(&$settings_form, $context) {
+function componentize_fieldgroup_field_formatter_settings_form_alter(&$settings_form, $context) {
   $display = $context['instance']['display'][$context['view_mode']];
   $settings = $display['settings'];
-  $group_settings = _components_get_group_settings($context);
+  $group_settings = componentize_get_group_settings($context);
 
   // Us configured compontent.
   if (isset($group_settings['component'])) {
     $factory = new ComponentFactory;
     $component = $factory->create($group_settings['component']);
     // Choose from registered variables.
-    $settings_form['components_fieldgroup_variable_name'] = array(
+    $settings_form['componentize_fieldgroup_variable_name'] = array(
       '#title' => t('Variable'),
       '#type' => 'select',
       '#options' => drupal_map_assoc($component->getVariables()),
-      '#default_value' => $settings['components_fieldgroup_variable_name'],
-      //'#element_validate' => array('components_fieldgroup_validate_variable'),
+      '#default_value' => $settings['componentize_fieldgroup_variable_name'],
       '#required' => TRUE,
     );
-    $settings_form['components_fieldgroup_via_template'] = array(
+    $settings_form['componentize_fieldgroup_via_template'] = array(
       '#title' => t('Data to template'),
       '#type' => 'checkbox',
       '#description' => t('Skip rendering and send data to template via handler plugin.'),
-      '#default_value' => $settings['components_fieldgroup_via_template'],
+      '#default_value' => $settings['componentize_fieldgroup_via_template'],
     );
   }
 
@@ -131,7 +129,7 @@ function components_fieldgroup_field_formatter_settings_form_alter(&$settings_fo
  * @param array $context
  * @return array
  */
-function _components_get_group_settings($context) {
+function componentize_get_group_settings($context) {
   $field_name = $context['instance']['field_name'];
 
   if (isset($context['form_state'])) {
@@ -152,7 +150,7 @@ function _components_get_group_settings($context) {
 /**
  * Validation for text-input variable settings.
  */
-// function components_fieldgroup_validate_variable($element, &$form_state, $form) {
+// function componentize_fieldgroup_validate_variable($element, &$form_state, $form) {
 //   if (!ctype_alnum($element['#value'])) {
 //     form_error($element, t('This field must be alphanumeric.'));
 //   }
@@ -162,7 +160,7 @@ function _components_get_group_settings($context) {
 /**
  * Reduce modifier choice to single string for multiple select lists in the fieldgroup.
  */
-function components_fieldgroup_single_modifier_validate($element, &$form_state, $form) {
+function componentize_fieldgroup_single_modifier_validate($element, &$form_state, $form) {
   // Due to using states for easy admin UI, an array is returned.
   $group_name = $form_state['triggering_element']['#field_name'];
   $group_values = &$form_state['values']['fields'][$group_name]['format_settings']['settings']['instance_settings'];
@@ -179,28 +177,28 @@ function components_fieldgroup_single_modifier_validate($element, &$form_state, 
  *
  * Display field mapping settings to admins.
  */
-function components_fieldgroup_field_formatter_settings_summary_alter(&$summary, $context) {
+function componentize_fieldgroup_field_formatter_settings_summary_alter(&$summary, $context) {
   $display = $context['instance']['display'][$context['view_mode']];
   $settings = $display['settings'];
 
-  //$group_settings = _components_get_group_settings($context);
+  //$group_settings = componentize_get_group_settings($context);
   //if (isset($group_settings['component'])) {
 
-  if (isset($settings['components_fieldgroup_variable_name'])) {
+  if (isset($settings['componentize_fieldgroup_variable_name'])) {
     if (!empty($summary)) {
       $summary .= '<br />';
     }
 
-    if ($settings['components_fieldgroup_variable_name']) {
+    if ($settings['componentize_fieldgroup_variable_name']) {
       $summary .= t('Map to "@variable" template variable', array(
-        '@variable' => $settings['components_fieldgroup_variable_name'],
+        '@variable' => $settings['componentize_fieldgroup_variable_name'],
       ));
     }
     else {
       $summary .= t('No template variable mapped yet!');
     }
 
-    if ($settings['components_fieldgroup_via_template']) {
+    if ($settings['componentize_fieldgroup_via_template']) {
       t('Using field handler for template values');
     }
     else {
@@ -217,7 +215,7 @@ function components_fieldgroup_field_formatter_settings_summary_alter(&$summary,
  *
  * @return string
  */
-function theme_components_fieldgroup($variables) {
+function theme_componentize_fieldgroup($variables) {
   // Find variables for templates in fields.
   $template_vars = array();
   $entity_object = FALSE;
@@ -231,28 +229,28 @@ function theme_components_fieldgroup($variables) {
     $instance = field_info_instance(
       $field_elm['#entity_type'], $field_name, $field_elm['#bundle']
     );
-    $variable_map = $instance['display'][$variables['element']['#view_mode']]['settings']['components_fieldgroup_variable_name'];
-    $via_template = TRUE; //$field_elm['#settings']['components_fieldgroup_via_template'];
+    $variable_map = $instance['display'][$variables['element']['#view_mode']]['settings']['componentize_fieldgroup_variable_name'];
+    $via_template = TRUE; //$field_elm['#settings']['componentize_fieldgroup_via_template'];
 
     // Field type handling done by pluggable class.
     $field_info = field_info_field($field_name);
     $type = $field_elm['#field_type'];
     $handler = FALSE;
     if ($via_template) {
-      $component_types = components_fieldgroup_field_types();
-      $class_name = isset($component_types[$type]) ? $component_types[$type] : COMPONENTS_DEFAULT_FIELD_HANDLER;
+      $component_types = componentize_fieldgroup_field_types();
+      $class_name = isset($component_types[$type]) ? $component_types[$type] : COMPONENTIZE_DEFAULT_FIELD_HANDLER;
       // Load class.
       if (class_exists($class_name)) {
         $handler = new $class_name($type, $field_elm['#formatter'], $field_elm, $field_info);
       }
       else {
-        watchdog('components', 'Missing class: !class', array('!class' => $class_name), WATCHDOG_ERROR);
+        watchdog('componentize', 'Missing class: !class', array('!class' => $class_name), WATCHDOG_ERROR);
         drupal_set_message(t('Missing class: !class', array('!class' => $class_name)), 'error');
       }
     }
 
     // Render field.
-    $template_vars[$variable_map] = _components_render_field(
+    $template_vars[$variable_map] = componentize_render_field(
       $field_name, $field_info, $variables['element'], $entity_object, $handler
     );
 
@@ -286,7 +284,7 @@ function theme_components_fieldgroup($variables) {
  *
  * @return string|array
  */
-function _components_render_field($field_name, $field_info, $element, $entity_object, $handler) {
+function componentize_render_field($field_name, $field_info, $element, $entity_object, $handler) {
   $entity_type = $element[$field_name]['#entity_type'];
   $items = $element[$field_name]['#items'];
 

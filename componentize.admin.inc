@@ -6,32 +6,32 @@
 /**
  * Settings admin configs.
  */
-function components_settings() {
+function componentize_settings() {
   $form = array(
     '#prefix' => t('Saving this form will re-scan and regenerate stored component records.'),
 
-    'components_directory' => array(
+    'componentize_directory' => array(
       '#type' => 'textfield',
       '#title' => 'Directory',
       '#description' => t('Folder location of site components (default: !folder).',
-        array('!folder' => COMPONENTS_DIRECTORY
+        array('!folder' => COMPONENTIZE_DIRECTORY
       )),
-      '#default_value' => variable_get('components_directory', COMPONENTS_DIRECTORY),
+      '#default_value' => variable_get('componentize_directory', COMPONENTIZE_DIRECTORY),
     ),
 
-    'components_assets' => array(
+    'componentize_assets' => array(
       '#type' => 'textfield',
       '#title' => 'Compiled assets directory',
       '#description' => t('Folder location of compiled site components CSS and javascript (default: !folder).', array(
-          '!folder' => COMPONENTS_COMPILED_ASSETS)
+          '!folder' => COMPONENTIZE_COMPILED_ASSETS)
         ) . '<br>' . t('Filenames should be: !css and !js', array(
-          '!css' => '<code>' . COMPONENTS_COMPILED_CSS . '</code>',
-          '!js' => '<code>' . COMPONENTS_COMPILED_JS . '</code>'
+          '!css' => '<code>' . COMPONENTIZE_COMPILED_CSS . '</code>',
+          '!js' => '<code>' . COMPONENTIZE_COMPILED_JS . '</code>'
       )),
-      '#default_value' => variable_get('components_assets', COMPONENTS_COMPILED_ASSETS),
+      '#default_value' => variable_get('componentize_assets', COMPONENTIZE_COMPILED_ASSETS),
     ),
 
-    'components_storage' => array(
+    'componentize_storage' => array(
       '#type' => 'select',
       '#options' => array(
         'variable' => t('Strong - Variable'),
@@ -40,19 +40,19 @@ function components_settings() {
       ),
       '#title' => 'Config storage',
       '#description' => t('Avoid regenerating with less aggresive caching. Data will be stored in either: variables, cache or regenerated on every page load.'),
-      '#default_value' => variable_get('components_storage', 1),
+      '#default_value' => variable_get('componentize_storage', 1),
     ),
   );
 
-  $form['#submit'][] = 'components_regenerate';
+  $form['#submit'][] = 'componentize_regenerate';
 
-  // $form['components_blocks'] = array(
+  // $form['componentize_blocks'] = array(
   //   '#type' => 'checkbox',
-  //   '#options' => _component_list(TRUE),
+  //   '#options' => componentize_list(TRUE),
   //   '#multiple' => TRUE,
   //   '#title' => 'Blocks',
   //   '#description' => t('Components to generate as blocks.'),
-  //   '#default_value' => variable_get('components_blocks', array()),
+  //   '#default_value' => variable_get('componentize_blocks', array()),
   // );
 
   return system_settings_form($form);
@@ -62,7 +62,7 @@ function components_settings() {
 /**
  * Regenerate registered component variables.
  */
-function components_regenerate() {
+function componentize_regenerate() {
   // Second param is reset.
-  components_list(FALSE, TRUE);
+  componentize_list(FALSE, TRUE);
 }

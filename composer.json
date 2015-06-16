@@ -11,6 +11,6 @@
     }
   ],
   "autoload": {
-    "psr-4": {"Components\\": "lib/"}
+    "psr-4": {"Componentize\\": "lib/"}
   }
 }

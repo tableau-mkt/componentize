@@ -6,7 +6,7 @@
 /**
  * Implements hook_uninstall.
  */
-function components_unistall() {
+function componentize_unistall() {
   foreach (array(
       'components_directory',
       'components_list',
@@ -17,7 +17,7 @@ function components_unistall() {
   }
 
   // Delete all stored component variables, if any.
-  foreach (components_list() as $component) {
+  foreach (componentize_list() as $component) {
     $component->delete();
   }
 }
