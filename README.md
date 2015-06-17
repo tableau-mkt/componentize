@@ -58,6 +58,9 @@ $conf['componentize_assets'] = './my_components/dist';
 
 
 ### Developer Use
+
+####Check out the [Component APIs](https://github.com/tableau-mkt/componentize/wiki/Component-APIs)
+
 This module allows you to refer to components written in front-end code and render content (through Handlebars templates, via PHP code) inside Drupal.  Control components in the following ways...
 
 1. Register new components to house within a module, rather than the general site folder.
@@ -65,7 +68,7 @@ This module allows you to refer to components written in front-end code and rend
 1. Alter an existing component based on code conditions, like it's modifier or variable values.
 1. Add or alter variable data before it is rendered through the template (eg: strings for translation).
 
-#### Please see: [componentize.api.php](https://github.com/tableau-mkt/componentize/blob/7.x-1.x/componentize.api.php)
+#### Also see: [componentize.api.php](https://github.com/tableau-mkt/componentize/blob/7.x-1.x/componentize.api.php)
 
 One quick example...
 
