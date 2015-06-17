@@ -1,8 +1,8 @@
 # Componentize!
 
-**Integrate your well-structured style guide with Drupal.**
+**Integrate/import your well-structured style guide into Drupal.**
 
-Prefer to organzie your styles into components?  Want to use [Handlebars](http://handlebarsjs.com) as templates?  Want to use an automated, living style guide ([KSS](http://warpspire.com/kss/styleguides)) and still work with Drupal?  Now you can!
+Prefer to organize your styles into components?  Want to use [Handlebars](http://handlebarsjs.com) as templates?  Want to use an automated, living style guide ([KSS](http://warpspire.com/kss/styleguides)) that's synced to Drupal?  Now you can!
 
 Keep a clean front-end structure and make Drupal aware with convenient developer APIs; render CMS content through Handlebars templates!  Even map entity [fieldgroups](https://www.drupal.org/project/field_group) directly to components without writing a line of code ...and control components via Context.
 

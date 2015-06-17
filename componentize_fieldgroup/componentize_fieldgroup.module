@@ -241,7 +241,7 @@ function theme_componentize_fieldgroup($variables) {
       $class_name = isset($component_types[$type]) ? $component_types[$type] : COMPONENTIZE_DEFAULT_FIELD_HANDLER;
       // Load class.
       if (class_exists($class_name)) {
-        $handler = new $class_name($type, $field_elm['#formatter'], $field_elm, $field_info);
+        $handler = new $class_name($field_elm);
       }
       else {
         watchdog('componentize', 'Missing class: !class', array('!class' => $class_name), WATCHDOG_ERROR);

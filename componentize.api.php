@@ -5,6 +5,18 @@
 
 
 /**
+ * Use a component to render code.
+ */
+function my_module_block_view() {
+  $component = new ComponentFactory('Section.Component');
+  $component->render(array(
+    'name' => 'Smarty Pants',
+    'score' => '99',
+  ));
+}
+
+
+/**
  * Add custom components.
  *
  * @param array &$list
@@ -56,15 +68,3 @@ function hook_componentize_render_alter(&$component, &$data) {
   }
 }
 
-
-
-/**
- * Use a component to render code.
- */
-function my_module_block_view() {
-  $component = new Component('Section.Component');
-  $component->render(array(
-    'name' => 'Smarty Pants',
-    'score' => '99',
-  ));
-}
