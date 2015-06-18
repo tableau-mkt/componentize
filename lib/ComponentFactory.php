@@ -1,34 +1,61 @@
 <?php
 /**
- * @file Web component object for Drupal, uses Handlebars and SASS.
+ * @file Component object for Drupal.
+ *
+ * Uses KSS (Handlebars and SASS/CSS comments, etc).
  */
 
 namespace Componentize;
-
 use Componentize\ParserKSSnode;
 
 class ComponentFactory {
 
   private static $styleguide;
-  private $configs;
 
-  public function create($name, $configs = array()) {
+  // Prevent building new factories.
+  protected function __construct() {
+    // Access via ComponentFactory::create().
+  }
 
+  /**
+   * Generate a component.
+   *
+   * @param string $name
+   * @param array $configs
+   *
+   * @return Component
+   */
+  public static function create($name, $configs = array()) {
     // Honor passed, provide a default.
-    $this->configs = $configs + array(
+    $configs = $configs + array(
       'path' => variable_get('componentize_directory', COMPONENTIZE_DIRECTORY),
       'storage' => variable_get('componentize_storage', 1),
       'module' => 'componentize',
       'reset' => FALSE,
     );
 
-    // @todo Avoid even creating the styleguide if everything is already in storage.
+    // Attempt to get component.
+    $component = new Component($name, $configs);
 
-    // Use a common static styleguide parser.
-    if (!self::$styleguide) {
-      self::$styleguide =  new ParserKSSnode($this->configs['path']);
+    // Build a style guide and load component if not yet stored.
+    // Component handles reset.  Template is a proxy for built status.
+    if (!property_exists($component, 'template') || empty($component->template)) {
+      self::setGuide($configs['path']);
+      $component->load(self::$styleguide);
     }
 
-    return new Component($name, $this->configs, self::$styleguide);
+    return $component;
   }
+
+
+  /**
+   * Set the factory style guide. Avoids building when unecessary.
+   */
+  private function setGuide($path) {
+    // Use a common static styleguide Parser.
+    if (!self::$styleguide) {
+      self::$styleguide =  new ParserKSSnode($path);
+    }
+  }
+
 }

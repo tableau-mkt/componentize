@@ -121,9 +121,8 @@ function componentize_list($shallow = FALSE, $reset = FALSE) {
   if (!$shallow) {
     // Build component objects.
     $list_full = array();
-    $factory = new ComponentFactory;
     foreach ($list as $key => $component) {
-      $list_full[$component] = $factory->create($component, array('reset' => $reset));
+      $list_full[$component] = ComponentFactory::create($component, array(), TRUE);
       // Clear storage and compiled templates.
       if ($reset) {
         $list_full[$component]->remove();

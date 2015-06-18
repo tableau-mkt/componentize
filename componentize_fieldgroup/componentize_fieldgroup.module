@@ -100,8 +100,7 @@ function componentize_fieldgroup_field_formatter_settings_form_alter(&$settings_
 
   // Us configured compontent.
   if (isset($group_settings['component'])) {
-    $factory = new ComponentFactory;
-    $component = $factory->create($group_settings['component']);
+    $component = ComponentFactory::create($group_settings['component']);
     // Choose from registered variables.
     $settings_form['componentize_fieldgroup_variable_name'] = array(
       '#title' => t('Variable'),
@@ -259,8 +258,7 @@ function theme_componentize_fieldgroup($variables) {
   }
 
   // Pass data through template.
-  $factory = new ComponentFactory;
-  $component = $factory->create($variables['element']['#settings']['component']);
+  $component = ComponentFactory::create($variables['element']['#settings']['component']);
 
   // Make modifier available in the template.
   if (isset($element['#settings']['modifier'])) {

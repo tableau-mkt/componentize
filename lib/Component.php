@@ -12,6 +12,7 @@ class Component {
           $configs,
           $styleguide,
           $namespace,
+          $title,
           $modifiers,
           $modifier,
           $variables,
@@ -21,22 +22,21 @@ class Component {
   /**
    * Constructor.
    */
-  public function __construct($name, $configs, $styleguide) {
+  public function __construct($name, $configs = array()) {
     $this->name = $name;
     $this->configs = $configs;
-    $this->styleguide = $styleguide;
+    $this->namespace = $this->configs['module'] . '-' .  $this->name;
 
     // Common.
     $this->template_dir = variable_get('componentize_templates', COMPONENTIZE_COMPILED_TEMPLATES);
 
-    // Full storage namespace.
-    $this->namespace = $this->configs['module'] . '-' .  $this->name;
+    // Fresh load requested, factory will handle loading with style guide Parser.
+    if ($this->configs['reset'] || $this->configs['storage'] === 'none') {
+      break;
+    }
 
-    // Build out component.
-    $data = $this->load();
-    $this->template = $data['template'];
-    $this->variables = $data['variables'];
-    $this->modifiers = $data['modifiers'];
+    // Attempt to load from storage.
+    $this->retrieve();
   }
 
 
@@ -103,8 +103,7 @@ class Component {
    * @return array
    */
   public function getTitle() {
-    $section = $this->styleguide->getSection($this->name);
-    return $section->getTitle();
+    return $this->title;
   }
 
 
@@ -151,10 +150,11 @@ class Component {
   /**
    * Choose modifier state for later rendering, strip CSS selector prefix.
    *
+   * @todo Store as property, load() via $section->thisgetTitle().
+   *
    * @param string $modifier
    */
   public function getSection() {
-    // @todo Probably a better way within library.
     return current(explode('.', $this->name));
   }
 
@@ -174,27 +174,29 @@ class Component {
 
 
   /**
-   * Provide data about this component.
+   * Gather data about this component from the source.
    *
    * @param string $path
    *   Where to find the template.
    *
    * @return array
    */
-  private function load() {
-    $component_data = &drupal_static(__FUNCTION__ . $this->namespace);
-
-    // User static, or stored output.
-    if ($component_data || $component_data = $this->retrieve()) {
-      return $component_data;
+  public function load($styleguide = FALSE) {
+    // Styleguide required for building the component.
+    if (!$this->styleguide && !$styleguide) {
+      return FALSE;
     }
 
+    // Prefer the passed guide, if present.
+    $this->styleguide = $styleguide ?: $this->styleguide;
+
+    // Simple properties.
     $section = $this->styleguide->getSection($this->name);
-    $shortName = $section->getTitle();
+    $title = $section->getTitle();
 
     // Variable names within template (assignment test).
     $variables = array();
-    if ($data = $this->openComponent($shortName . '/' . $shortName . '.json')) {
+    if ($data = $this->open($title . '/' . $title . '.json')) {
       $variables = array_keys(json_decode($data, TRUE)) ?: array();
     }
 
@@ -210,7 +212,7 @@ class Component {
 
     // Template.
     //$section->getMarkup();
-    $template = $this->openComponent($shortName . '/' . $shortName . '.hbs');
+    $template = $this->open($title . '/' . $title . '.hbs');
 
     // Javascript dependency.
     // $js_filepath = $this->configs['path'] . '/' . $this->name . '/' . $this->name . '.js';
@@ -218,30 +220,29 @@ class Component {
     //   $js = $js_filepath;
     // }
 
-    // Prepage for storage and retrevial.
-    $component_data = array(
+    // Save for retrevial next time, set objet properties.
+    $this->save(array(
+      'title' => $title ?: '',
       'template' => $template ?: '',
-      //'renderer' => $handlebar->compile($data) ?: FALSE,
       'variables' => $variables,
       'modifiers' => $modifiers,
       //'classes' => $classes,
       //'js' => $js,
-    );
-    $this->save($component_data);
+    ));
 
-    return $component_data;
+    return TRUE;
   }
 
 
   /**
-   * File handler utility.
+   * File handler utility, until Parser is used for everything.
    *
    * @param $filename
    *
    * @return sting
    *   File contents with line breaks;
    */
-  private function openComponent($filename) {
+  private function open($filename) {
     $filepath = $this->configs['path'] . '/'. $filename;
     if (file_exists($filepath)) {
       return file_get_contents($filepath);
@@ -260,7 +261,7 @@ class Component {
    *
    * @todo Save as entities.
    *
-   * @param mixed $data
+   * @param array $data
    */
   private function save($data) {
     switch ($this->configs['storage']) {
@@ -272,6 +273,8 @@ class Component {
         cache_set('componentize_' . $this->namespace, $data);
         break;
     }
+
+    $this->set($data);
   }
 
 
@@ -281,22 +284,32 @@ class Component {
    * @todo Retrieve as entities.
    */
   private function retrieve() {
-    if ($this->configs['reset']) {
-      return array();
-    }
+    $data = &drupal_static(__FUNCTION__ . $this->namespace);
+    if ($data) return;
 
     switch ($this->configs['storage']) {
       case 'variable':
-        return variable_get('componentize_' . $this->namespace);
+        $data = variable_get('componentize_' . $this->namespace);
         break;
 
       case 'cache':
-        return cache_get('componentize_' . $this->namespace, 'cache');
-        break;
-
-      default:
-        return array();
+        $data = cache_get('componentize_' . $this->namespace, 'cache');
         break;
     }
+
+    $this->set($data);
+  }
+
+
+  /**
+   * Set object properties from known data.
+   *
+   * @param array $set
+   */
+  private function set($data) {
+    $this->title = isset($data['title']) ? $data['title'] : '';
+    $this->template = isset($data['template']) ? $data['template'] : '';
+    $this->variables = isset($data['variables']) ? $data['variables'] : array();
+    $this->modifiers = isset($data['modifiers']) ? $data['modifiers'] : array();
   }
 }

@@ -5,22 +5,19 @@
 
 
 /**
- * Implements hook_entity_view_alter().
- *
- * @param array $build
- * @param string $type
+ * Use entity field data (via easy field plugins) to render components.
+ * @param  [type] $variables [description]
+ * @return [type]            [description]
  */
-function hook_entity_view_alter(&$build, $type) {
-  if ($type !== 'my_type') return;
-    // Prepare workers.
-    $component = new ComponentFactory('Section.ComponentizedField');
-    $wrapper = entity_metadata_wrapper($type, $build);
-    $field_handler = new ComponentFieldMyType($wrapper->field_componentized);
-    // Push the data through plugibly.
-    $entity['field_componentized'] = $component->render(
-      $field_handler->getValues()
-    );
-  }
+function theme_my_module_theme_something($variables) {
+  // Load component, optionally set modifier.
+  $component = ComponentFactory::create('Section.ComponentizedField');
+  $component->setModifier($variables['element']['#settings']['modifier']);
+  // Load field handler, get field values for template.
+  $handler = new ComponentFieldMyType($variables['element']['field_myfield']);
+  $template_vars = $handler->getValues($element[$field_name]['#items'][0]);
+  // Render the component.
+  $component->render($template_vars);
 }
 
 
@@ -51,6 +48,10 @@ function hook_componentize_fieldgroup_field_types_info_alter($handlers) {
  */
 class ComponentFieldMyType extends ComponentField {
   public function getValue($item) {
+    // $this->field
+    // $this->format
+    // $this->type
+
     return array(
       'myProperty' => $item['my_property'],
       'specialInfo' => $item['special'],

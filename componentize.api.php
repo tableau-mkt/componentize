@@ -5,10 +5,10 @@
 
 
 /**
- * Use a component to render code.
+ * Use a component to render content.
  */
 function my_module_block_view() {
-  $component = new ComponentFactory('Section.Component');
+  $component = ComponentFactory::create('Section.Component');
   $component->render(array(
     'name' => 'Smarty Pants',
     'score' => '99',
@@ -41,7 +41,7 @@ function hook_componentize_list_alter(&$list, $shallow) {
     'js'      => 'components/my-component.js',
     'storage' => 'full', // Optional: storage level (variable, full, none).
   );
-  $list['my_component'] = new ComponentFactory('Section.Component', $configs);
+  $list['my_component'] = ComponentFactory::create('Section.Component', $configs);
 
   // Mess with an existing component.
   if (current_path() === 'my-special-path') {
