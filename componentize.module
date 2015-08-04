@@ -20,7 +20,7 @@ function componentize_menu() {
   $items[$path] = array(
     'title' => 'Components',
     'description' => 'Browse available component structure.',
-    'access arguments' => array('access component library'),
+    'access arguments' => array('access components library'),
     'page callback' => 'componentize_library_output',
     'file' => 'componentize.library.inc'
   );
@@ -100,7 +100,7 @@ function componentize_list($shallow = FALSE, $reset = FALSE) {
 
   // Get the list, try via variable.
   $list = variable_get('componentize_list', array());
-  if (empty($list) && $reset) {
+  if (empty($list) || $reset) {
     // Parse all styles.
     $styleguide = new ParserKSSnode($dir);
     $sections =  $styleguide->getSections();
@@ -113,7 +113,7 @@ function componentize_list($shallow = FALSE, $reset = FALSE) {
       variable_set('componentize_list', $list);
     }
     else {
-      drupal_set_message('componentize', 'No web components found.', array(), 'warning');
+      drupal_set_message('No web components found.', 'warning');
     }
   }
 
