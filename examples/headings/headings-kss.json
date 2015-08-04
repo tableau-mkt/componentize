@@ -1,0 +1,28 @@
+{
+  "headings": [
+    {
+      "text": "Heading Level 1 <h1>",
+      "level": "1"
+    },
+    {
+      "text": "Heading Level 2 <h2>",
+      "level": "2"
+    },
+    {
+      "text": "Heading Level 3 <h3>",
+      "level": "3"
+    },
+    {
+      "text": "Heading Level 4 <h4>",
+      "level": "4"
+    },
+    {
+      "text": "Heading Level 5 <h5>",
+      "level": "5"
+    },
+    {
+      "text": "Heading Level 6 <h6>",
+      "level": "6"
+    }
+  ]
+}

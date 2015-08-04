@@ -1,0 +1,63 @@
+/*
+Default Headings
+
+Used for title and prominent labels of content.
+
+Markup: headings-kss.hbs
+
+Weight: 3
+
+Styleguide: typography.headings
+*/
+
+h1, .heading--h1,
+h2, .heading--h2,
+h3, .heading--h3,
+h4, .heading--h4,
+h5, .heading--h5,
+h6, .heading--h6 {
+  margin: .5em 0;
+  font-family: $text--benton-thin;
+  font-weight: 100;
+  line-height: 1.2;
+}
+
+h1, .heading--h1 {
+  font-size: em(50px);
+
+  @include breakpoint($tablet-only) {
+    font-size: em(45px);
+  }
+
+  @include breakpoint($mobile-only) {
+    font-size: em(32px);
+  }
+}
+
+h2, .heading--h2 {
+  font-size: em(36px);
+
+  @include breakpoint($tablet-only) {
+    font-size: em(32px);
+  }
+
+  @include breakpoint($mobile-only) {
+    font-size: em(28px);
+  }
+}
+
+h3, .heading--h3 {
+  font-size: em(26px);
+}
+
+h4, .heading--h4 {
+  font-size: em(23px);
+}
+
+h5, .heading--h5 {
+  font-size: 1.25em;
+}
+
+h6, .heading--h6 {
+  font-size: 1em;
+}

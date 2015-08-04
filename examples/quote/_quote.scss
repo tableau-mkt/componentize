@@ -1,0 +1,73 @@
+/*
+Quotes
+
+Stylized quoted text such as a pull quote or testimonial.
+
+Markup: quote.hbs
+
+Weight: 4
+
+.quote--byline - Includes byline.
+
+Styleguide: typography.quote
+*/
+
+.quote {
+  .quote__text {
+    position: relative;
+    font-size: 1.7em;
+    line-height: 1.4;
+
+    &:before {
+      position: absolute;
+      content: "\201C";
+      left: -0.6em;
+    }
+
+    &:after {
+      content: "\201D";
+    }
+  }
+
+  .quote__byline {
+    @extend .text--label;
+    &:before {
+      content: "";
+      display: inline-block;
+      width: 30px;
+      height: 1px;
+      margin-right: .5em;
+      vertical-align: middle;
+      background: $text-light-body;
+    }
+
+    .quote__byline__title {
+      color: $text-medium-body;
+    }
+  }
+
+  &.quote--light {
+    .quote__byline {
+      .quote__byline__name {
+        color: $text-negative;
+      }
+
+      .quote__byline__title {
+        color: $text-light-body;
+      }
+
+      &:before {
+        background: $text-light-body;
+      }
+    }
+  }
+
+  @include breakpoint($mobile-only) {
+    .quote__text {
+      font-size: 1.2em;
+    }
+    .quote__byline:before {
+      width: 20px;
+    }
+  }
+}

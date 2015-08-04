@@ -103,11 +103,10 @@ function componentize_list($shallow = FALSE, $reset = FALSE) {
   if (empty($list) || $reset) {
     // Parse all styles.
     $styleguide = new ParserKSSnode($dir);
-    $sections =  $styleguide->getSections();
-    foreach ($sections as $section) {
-      $components = $styleguide->getSectionChildren($section->getTitle());
-      $list = array_merge($list, array_keys($components));
-    }
+    $components = $styleguide->getSections();
+    // $components = $styleguide->getSectionChildren($section->getReference());
+    $list = array_merge($list, array_keys($components));
+
     // Store results or complain.
     if (!empty($list)) {
       variable_set('componentize_list', $list);

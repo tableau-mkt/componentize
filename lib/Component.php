@@ -32,11 +32,12 @@ class Component {
 
     // Fresh load requested, factory will handle loading with style guide Parser.
     if ($this->configs['reset'] || $this->configs['storage'] === 'none') {
-      break;
+      $this->load();
     }
-
-    // Attempt to load from storage.
-    $this->retrieve();
+    else {
+      // Attempt to load from storage.
+      $this->retrieve();
+    }
   }
 
 
@@ -189,20 +190,16 @@ class Component {
 
     // Prefer the passed guide, if present.
     $this->styleguide = $styleguide ?: $this->styleguide;
+    $section = $this->styleguide->getSection($this->name);
 
     // Simple properties.
-    $section = $this->styleguide->getSection($this->name);
     $title = $section->getTitle();
 
-    // Variable names within template (assignment test).
-    $variables = array();
-    if ($data = $this->open($title . '/' . $title . '.json')) {
-      $variables = array_keys(json_decode($data, TRUE)) ?: array();
-    }
+    // Variable names within template.
+    $variables = $this->findVariables($title, $section->getMarkup());
 
     // Modifiers.
     $modifiers = array();
-    $section = $this->styleguide->getSection($this->name);
     foreach ($section->getModifiers() as $modifier) {
       $modifiers[] = $modifier->getName();
     }
@@ -212,7 +209,7 @@ class Component {
 
     // Template.
     //$section->getMarkup();
-    $template = $this->open($title . '/' . $title . '.hbs');
+    $template = $this->open($title . '/' . $section->getMarkup());
 
     // Javascript dependency.
     // $js_filepath = $this->configs['path'] . '/' . $this->name . '/' . $this->name . '.js';
@@ -231,6 +228,29 @@ class Component {
     ));
 
     return TRUE;
+  }
+
+
+  /**
+   * Discover component data variables.
+   *
+   * @return array
+   */
+  private function findVariables($title, $markupFile) {
+    $vars = array();
+    $filename = str_replace('hbs', 'json', $markupFile);
+
+    // Open the JSON file (assignment test).
+    if ($data = $this->open($title . '/' . $filename)) {
+      $jsonData = json_decode($data, TRUE);
+      $first = current($jsonData);
+      // Allow multi-value JSON variable declaration.
+      if (gettype($first) === 'array') {
+        $jsonData = $first[0];
+      }
+      $vars = array_keys($jsonData) ?: array();
+    }
+    return $vars;
   }
 
 
