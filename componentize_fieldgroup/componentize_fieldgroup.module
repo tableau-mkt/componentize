@@ -9,6 +9,7 @@ use Componentize\ComponentsField;
 define('COMPONENTIZE_NAMESPACE', 'Componentize');
 define('COMPONENTIZE_FIELD_HANDLER_DEFAULT', 'ComponentField');
 
+
 /**
  * Implements hook_ctools_plugin_api().
  */
@@ -16,6 +17,27 @@ function componentize_fieldgroup_ctools_plugin_api($module, $api) {
   if ($module == 'field_group' && $api == 'field_group') {
     return array('version' => 1);
   }
+}
+
+
+/**
+ * Implements hook_field_group_formatter_info().
+ *
+ * @todo Avoid showing up in form admin.
+ */
+function componentize_fieldgroup_field_group_formatter_info() {
+  return array(
+    'display' => array(
+      'component_fieldgroup' => array(
+        'label' => t('Component'),
+        'descripton' => t("This fieldgroup renders the inner content using the selected Component's structure"),
+        'instance_settings' => array(
+          'component' => '',
+          'modifiers' => '',
+        ),
+      ),
+    ),
+  );
 }
 
 
@@ -54,6 +76,9 @@ function componentize_fieldgroup_field_types() {
 function componentize_fieldgroup_component_fieldgroup_field_types_info() {
   return array(
     'text' =>               COMPONENTIZE_NAMESPACE . '\\' . COMPONENTIZE_FIELD_HANDLER_DEFAULT,
+    'text_default' =>       COMPONENTIZE_NAMESPACE . '\\' . COMPONENTIZE_FIELD_HANDLER_DEFAULT,
+    'text_plain' =>         COMPONENTIZE_NAMESPACE . '\\' . COMPONENTIZE_FIELD_HANDLER_DEFAULT,
+    'text_trimmed' =>       COMPONENTIZE_NAMESPACE . '\\' . COMPONENTIZE_FIELD_HANDLER_DEFAULT,
     'text_long' =>          COMPONENTIZE_NAMESPACE . '\\' . COMPONENTIZE_FIELD_HANDLER_DEFAULT,
     'text_with_summary' =>  COMPONENTIZE_NAMESPACE . '\\' . COMPONENTIZE_FIELD_HANDLER_DEFAULT,
     'number_integer' =>     COMPONENTIZE_NAMESPACE . '\ComponentFieldNumber',
@@ -208,13 +233,39 @@ function componentize_fieldgroup_field_formatter_settings_summary_alter(&$summar
 
 
 /**
+ * Implements field_group_pre_render_<format-type>.
+ * Format: component_fieldgroup
+ *
+ * @param array &$element
+ * @param array $group
+ * @param array &$form
+ */
+function field_group_pre_render_component_fieldgroup(&$element, $group, &$form) {
+  // @todo May want to access the label position within the template.
+  // $element['#label_display']
+
+  // Add necessary items to variables within theme function.
+  $element += array(
+    '#type' => 'component_fieldgroup',
+    '#theme' => 'component_fieldgroup',
+    '#title' => t($group->label),
+    '#description' => $group->description,
+    '#parents' => array($group->parent_name),
+    '#children' => $group->children,
+    '#settings' => $group->format_settings['instance_settings'],
+    '#view_mode' => $group->mode,
+  );
+}
+
+
+/**
  * Returns HTML for a component fieldgroups.
  *
  * @param array $variables
  *
  * @return string
  */
-function theme_componentize_fieldgroup($variables) {
+function theme_component_fieldgroup($variables) {
   // Find variables for templates in fields.
   $template_vars = array();
   $entity_object = FALSE;

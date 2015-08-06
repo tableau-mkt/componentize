@@ -13,7 +13,7 @@ use Scan\Kss\Section;
 class SectionKSSnode extends Section {
 
   /**
-   * Returns the reference number for the section
+   * Returns the reference number for the section.
    *
    * @param boolean $trimmed OPTIONAL
    *
@@ -35,7 +35,7 @@ class SectionKSSnode extends Section {
   }
 
   /**
-   * Gets the part of the KSS Comment Block that contains the section reference
+   * Gets the part of the KSS Comment Block that contains the section reference.
    *
    * @return string
    */
@@ -50,6 +50,18 @@ class SectionKSSnode extends Section {
     }
 
     return $referenceComment;
+  }
+
+  /**
+   * Returns the source file path where the comment block was located.
+   *
+   * @return string
+   */
+  public function getFilePath() {
+    if ($this->file === null) {
+      return '';
+    }
+    return dirname($this->file->getPathname());
   }
 
 }
