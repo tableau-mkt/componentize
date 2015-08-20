@@ -46,7 +46,7 @@ function componentize_library_output() {
         'field' => 'variables',
       ), array(
         'data' => theme_item_list(array(
-          'items' => $component->getModifiers(),
+          'items' => $component->getModifiers(TRUE),
           'type' => 'ol',
           'attributes' => array(),
           'title' => NULL,

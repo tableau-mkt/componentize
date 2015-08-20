@@ -46,7 +46,7 @@ function componentize_fieldgroup_field_group_format_settings($group) {
         $form['instance_settings']['modifier'][$component->getName()] = array(
           '#title' => $component->getName() . ' Modifier',
           '#type' => 'select',
-          '#options' => drupal_map_assoc(array_merge($component->getModifiers(), array('none'))),
+          '#options' => array_merge($component->getModifiers(), array('none' => 'none')),
           '#states' => array(
             'visible' => array(
               ':input[name$="[component]"]' => array('value' => $component->getName()),

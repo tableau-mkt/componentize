@@ -85,6 +85,8 @@ class Component {
       'modifier_class' => preg_replace('/^(\.|#)/', '', $this->modifier)
     ));
 
+kpr($this);
+
     return $renderer($data);
   }
 
@@ -114,8 +116,14 @@ class Component {
    *
    * @return array
    */
-  public function getModifiers() {
-    return !empty($this->modifiers) ? $this->modifiers : array();
+  public function getModifiers($shallow = FALSE) {
+    if (empty($this->modifiers)) return array();
+
+    if ($shallow) {
+      return call_user_func_array(function($m) { return key($m); }, $this->modifiers);
+    }
+
+    return $this->modifiers;
   }
 
 
@@ -200,9 +208,11 @@ class Component {
     $this->variables = $this->findVariables();
 
     // Modifiers.
-    $modifiers = array();
+    $this->modifiers = array();
     foreach ($this->section->getModifiers() as $modifier) {
-      $modifiers[] = $modifier->getName();
+      $modifiers[] = array(
+        $modifier->getName() => $modifier->getDescription(),
+      );
     }
 
     // Classes.
