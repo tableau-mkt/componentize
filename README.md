@@ -1,6 +1,6 @@
 # Componentize!
 
-**Integrate/import your well-structured style guide into Drupal.**
+**Integrate/import your well-structured component style guide into Drupal.**
 
 Prefer to organize your styles into components?  Want to use [Handlebars](http://handlebarsjs.com) as templates?  Want to use an automated, living style guide ([KSS](http://warpspire.com/kss/styleguides)) that's synced to Drupal?  Now you can!
 

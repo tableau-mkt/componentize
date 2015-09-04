@@ -12,7 +12,6 @@ class Component {
           $configs,
           $styleguide,
           $namespace,
-          $section,
           $title,
           $modifiers,
           $modifier,
@@ -85,8 +84,6 @@ class Component {
       'modifier_class' => preg_replace('/^(\.|#)/', '', $this->modifier)
     ));
 
-kpr($this);
-
     return $renderer($data);
   }
 
@@ -116,13 +113,7 @@ kpr($this);
    *
    * @return array
    */
-  public function getModifiers($shallow = FALSE) {
-    if (empty($this->modifiers)) return array();
-
-    if ($shallow) {
-      return call_user_func_array(function($m) { return key($m); }, $this->modifiers);
-    }
-
+  public function getModifiers() {
     return $this->modifiers;
   }
 
@@ -199,20 +190,18 @@ kpr($this);
 
     // Prefer the passed guide, if present.
     $this->styleguide = $styleguide ?: $this->styleguide;
-    $this->section = $this->styleguide->getSection($this->name);
+    $section = $this->styleguide->getSection($this->name);
 
     // Simple properties.
-    $this->title = $this->section->getTitle();
+    $title = $section->getTitle();
 
     // Variable names within template.
-    $this->variables = $this->findVariables();
+    $variables = $this->findVariables($title, $section->getMarkup());
 
     // Modifiers.
-    $this->modifiers = array();
-    foreach ($this->section->getModifiers() as $modifier) {
-      $modifiers[] = array(
-        $modifier->getName() => $modifier->getDescription(),
-      );
+    $modifiers = array();
+    foreach ($section->getModifiers() as $modifier) {
+      $modifiers[] = $modifier->getName();
     }
 
     // Classes.
@@ -220,7 +209,7 @@ kpr($this);
 
     // Template.
     //$section->getMarkup();
-    $template = $this->open($this->section->getMarkup());
+    $template = $this->open($title . '/' . $section->getMarkup());
 
     // Javascript dependency.
     // $js_filepath = $this->configs['path'] . '/' . $this->name . '/' . $this->name . '.js';
@@ -230,9 +219,9 @@ kpr($this);
 
     // Save for retrevial next time, set objet properties.
     $this->save(array(
-      'title' => $this->title ?: '',
+      'title' => $title ?: '',
       'template' => $template ?: '',
-      'variables' => $this->variables,
+      'variables' => $variables,
       'modifiers' => $modifiers,
       //'classes' => $classes,
       //'js' => $js,
@@ -247,12 +236,12 @@ kpr($this);
    *
    * @return array
    */
-  private function findVariables() {
+  private function findVariables($title, $markupFile) {
     $vars = array();
-    $filename = str_replace('hbs', 'json', $this->section->getMarkup());
+    $filename = str_replace('hbs', 'json', $markupFile);
 
     // Open the JSON file (assignment test).
-    if ($data = $this->open($filename)) {
+    if ($data = $this->open($title . '/' . $filename)) {
       $jsonData = json_decode($data, TRUE);
       $first = current($jsonData);
       // Allow multi-value JSON variable declaration.
@@ -274,16 +263,14 @@ kpr($this);
    *   File contents with line breaks;
    */
   private function open($filename) {
-    $filepath = $this->section->getFilePath() . '/' . $filename;
-
+    $filepath = $this->configs['path'] . '/'. $filename;
     if (file_exists($filepath)) {
       return file_get_contents($filepath);
     }
     else {
       drupal_set_message(t(
-        'Component file missing: @file', array('@file' => $filepath)),
-        'warning'
-      );
+        'Component file missing: @file', array('@file' => $filepath)
+      ), 'warning');
       return FALSE;
     }
   }
