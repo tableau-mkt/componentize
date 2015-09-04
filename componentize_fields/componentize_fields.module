@@ -1,0 +1,102 @@
+<?php
+/**
+ * @file Render field content through a component.
+ */
+
+use Componentize\ComponentFactory;
+use Componentize\ComponentsField;
+
+
+/**
+ * List available field types for variables.
+ *
+ * @return array
+ */
+function componentize_fields_types() {
+  $handlers = &drupal_static(__FUNCTION__);
+
+  if (!$handlers) {
+    $handlers = module_invoke_all('componentize_field_types_info');
+    drupal_alter('componentize_field_types_info', $handlers);
+  }
+
+  return $handlers;
+}
+
+
+/**
+ * Implements hook_componentize_field_types_info().
+ *
+ * Register available field types.
+ */
+function componentize_fields_componentize_field_types_info() {
+  return array(
+    'text' =>               'Componentize\\ComponentField',
+    'text_long' =>          'Componentize\\ComponentField',
+    'text_with_summary' =>  'Componentize\\ComponentField',
+    'number_integer' =>     'Componentize\\ComponentFieldNumber',
+    'number_decimal' =>     'Componentize\\ComponentFieldNumber',
+    'number_unformatted' => 'Componentize\\ComponentFieldNumber',
+    'file' =>               'Componentize\\ComponentFieldFile',
+  );
+}
+
+
+/**
+ * Implements hook_field_formatter_info_alter().
+ *
+ * @todo Limit field mapping admin UI to correct Paragraphs type. #18
+ *
+ * Add custom setting for field formatter types within Paragraphs.
+ */
+function componentize_fields_field_formatter_info_alter(&$info) {
+  $types = array_keys(componentize_fields_field_types());
+
+  foreach ($info as $format => $formatter) {
+    // Field type is registered.
+    if (array_intersect($formatter['field types'], $types)) {
+      $info[$format]['settings'] += array(
+        'componentize_fields_variable_name' => '',
+        'componentize_fields_via_template' => '',
+      );
+    }
+  }
+}
+
+
+/**
+ * Rendering field via Drupal or component template, handle multiple.
+ *
+ * @todo Nested components.
+ *
+ * @param string $field_name
+ * @param array $field_info
+ * @param array $element
+ * @param object $entity_object
+ * @param ComponentField $handler
+ *
+ * @return string|array
+ */
+function componentize_fields_render_field($field_name, $field_info, $element, $entity_object, $handler) {
+  $entity_type = $element[$field_name]['#entity_type'];
+  $items = $element[$field_name]['#items'];
+
+  // Allow multi-field.
+  if (($field_info['cardinality'] > 1) || ($field_info['cardinality'] < 0)) {
+    $output = array();
+    foreach ($items as $item) {
+      // Via field handler class or Drupal render.
+      $output[] = ($handler) ? $handler->getValues($item) : field_view_value(
+        $entity_type, $entity_object, $field_name, $item
+      );
+    }
+  }
+  else {
+    // Single value field, same way.
+    $output = ($handler) ? $handler->getValues($items[0]) : field_view_value(
+      $entity_type, $entity_object, $field_name, $items[0]
+    );
+  }
+
+  return $output;
+}

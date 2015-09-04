@@ -1,0 +1,6 @@
+name = Componentize Fields
+description = Render field content through a component.
+core = 7.x
+dependencies[] = componentize
+dependencies[] = ctools
+dependencies[] = field_formatter_settings

@@ -1,11 +1,12 @@
 <?php
 /**
- * @file API documentation for component Fieldgroup.
+ * @file API documentation for component fields.
  */
 
 
 /**
  * Use entity field data (via easy field plugins) to render components.
+ *
  * @param  [type] $variables [description]
  * @return [type]            [description]
  */
@@ -22,9 +23,9 @@ function theme_my_module_theme_something($variables) {
 
 
 /**
- * Implements hook_componentize_fieldgroup_field_types_info().
+ * Implements hook_componentize_field_types_info().
  */
-function hook_componentize_fieldgroup_field_types_info() {
+function hook_componentize_field_types_info() {
   return array(
     'my_type' => 'ComponentFieldMyType',
   );
@@ -36,7 +37,7 @@ function hook_componentize_fieldgroup_field_types_info() {
  *
  * @param array $handlers
  */
-function hook_componentize_fieldgroup_field_types_info_alter($handlers) {
+function hook_componentize_field_types_info_alter($handlers) {
   $handlers['some_field_type'] = 'ComponentFieldType';
 }
 

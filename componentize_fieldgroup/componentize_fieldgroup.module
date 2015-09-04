@@ -3,12 +3,6 @@
  * @file Render content fieldgroups through a component.
  */
 
-use Componentize\ComponentFactory;
-use Componentize\ComponentsField;
-
-define('COMPONENTIZE_NAMESPACE', 'Componentize');
-define('COMPONENTIZE_FIELD_HANDLER_DEFAULT', 'ComponentField');
-
 
 /**
  * Implements hook_ctools_plugin_api().
@@ -21,27 +15,6 @@ function componentize_fieldgroup_ctools_plugin_api($module, $api) {
 
 
 /**
- * Implements hook_field_group_formatter_info().
- *
- * @todo Avoid showing up in form admin.
- */
-function componentize_fieldgroup_field_group_formatter_info() {
-  return array(
-    'display' => array(
-      'component_fieldgroup' => array(
-        'label' => t('Component'),
-        'descripton' => t("This fieldgroup renders the inner content using the selected Component's structure"),
-        'instance_settings' => array(
-          'component' => '',
-          'modifiers' => '',
-        ),
-      ),
-    ),
-  );
-}
-
-
-/**
  * Implements hook_theme().
  */
 function componentize_fieldgroup_theme() {
@@ -50,63 +23,6 @@ function componentize_fieldgroup_theme() {
       'render element' => 'element',
     ),
   );
-}
-
-
-/**
- * List available field types for variables.
- *
- * @return array
- */
-function componentize_fieldgroup_field_types() {
-  $handlers = &drupal_static(__FUNCTION__);
-  if (!$handlers) {
-    $handlers = module_invoke_all('component_fieldgroup_field_types_info');
-    drupal_alter('component_fieldgroup_field_types_info', $handlers);
-  }
-  return $handlers;
-}
-
-
-/**
- * Implements hook_component_fieldgroup_field_types_info().
- *
- * Register available field types.
- */
-function componentize_fieldgroup_component_fieldgroup_field_types_info() {
-  return array(
-    'text' =>               COMPONENTIZE_NAMESPACE . '\\' . COMPONENTIZE_FIELD_HANDLER_DEFAULT,
-    'text_default' =>       COMPONENTIZE_NAMESPACE . '\\' . COMPONENTIZE_FIELD_HANDLER_DEFAULT,
-    'text_plain' =>         COMPONENTIZE_NAMESPACE . '\\' . COMPONENTIZE_FIELD_HANDLER_DEFAULT,
-    'text_trimmed' =>       COMPONENTIZE_NAMESPACE . '\\' . COMPONENTIZE_FIELD_HANDLER_DEFAULT,
-    'text_long' =>          COMPONENTIZE_NAMESPACE . '\\' . COMPONENTIZE_FIELD_HANDLER_DEFAULT,
-    'text_with_summary' =>  COMPONENTIZE_NAMESPACE . '\\' . COMPONENTIZE_FIELD_HANDLER_DEFAULT,
-    'number_integer' =>     COMPONENTIZE_NAMESPACE . '\ComponentFieldNumber',
-    'number_decimal' =>     COMPONENTIZE_NAMESPACE . '\ComponentFieldNumber',
-    'number_unformatted' => COMPONENTIZE_NAMESPACE . '\ComponentFieldNumber',
-    'file' =>               COMPONENTIZE_NAMESPACE . '\ComponentFieldFile',
-  );
-}
-
-
-/**
- * Implements hook_field_formatter_info_alter().
- *
- * @todo Limit field mapping admin UI to correct fieldgroup type. #18
- *
- * Add custom setting for field formatter types within fieldgroups.
- */
-function componentize_fieldgroup_field_formatter_info_alter(&$info) {
-  $types = array_keys(componentize_fieldgroup_field_types());
-  foreach ($info as $format => $formatter) {
-    // Field type is registered.
-    if (array_intersect($formatter['field types'], $types)) {
-      $info[$format]['settings'] += array(
-        'componentize_fieldgroup_variable_name' => '',
-        'componentize_fieldgroup_via_template' => '',
-      );
-    }
-  }
 }
 
 
@@ -127,18 +43,18 @@ function componentize_fieldgroup_field_formatter_settings_form_alter(&$settings_
   if (isset($group_settings['component'])) {
     $component = ComponentFactory::create($group_settings['component']);
     // Choose from registered variables.
-    $settings_form['componentize_fieldgroup_variable_name'] = array(
+    $settings_form['componentize_fields_variable_name'] = array(
       '#title' => t('Variable'),
       '#type' => 'select',
       '#options' => drupal_map_assoc($component->getVariables()),
-      '#default_value' => $settings['componentize_fieldgroup_variable_name'],
+      '#default_value' => $settings['componentize_fields_variable_name'],
       '#required' => TRUE,
     );
-    $settings_form['componentize_fieldgroup_via_template'] = array(
+    $settings_form['componentize_fields_via_template'] = array(
       '#title' => t('Data to template'),
       '#type' => 'checkbox',
       '#description' => t('Skip rendering and send data to template via handler plugin.'),
-      '#default_value' => $settings['componentize_fieldgroup_via_template'],
+      '#default_value' => $settings['componentize_fields_via_template'],
     );
   }
 
@@ -203,58 +119,33 @@ function componentize_fieldgroup_single_modifier_validate($element, &$form_state
  */
 function componentize_fieldgroup_field_formatter_settings_summary_alter(&$summary, $context) {
   $display = $context['instance']['display'][$context['view_mode']];
-  $settings = $display['settings'];
+  $variable_name = $display['settings']['componentize_fields_variable_name'];
+  $via_template = $display['settings']['componentize_fields_via_template'];
 
   //$group_settings = componentize_get_group_settings($context);
   //if (isset($group_settings['component'])) {
 
-  if (isset($settings['componentize_fieldgroup_variable_name'])) {
+  if (isset($variable_name)) {
     if (!empty($summary)) {
       $summary .= '<br />';
     }
 
-    if ($settings['componentize_fieldgroup_variable_name']) {
+    if ($variable_name) {
       $summary .= t('Map to "@variable" template variable', array(
-        '@variable' => $settings['componentize_fieldgroup_variable_name'],
+        '@variable' => $variable_name,
       ));
     }
     else {
       $summary .= t('No template variable mapped yet!');
     }
 
-    if ($settings['componentize_fieldgroup_via_template']) {
-      t('Using field handler for template values');
+    if ($via_template) {
+      $summary .= t('Using field handler for template values');
     }
     else {
-      t('Rendered prior to template');
+      $summary .= t('Rendered prior to template');
     }
   }
-}
-
-
-/**
- * Implements field_group_pre_render_<format-type>.
- * Format: component_fieldgroup
- *
- * @param array &$element
- * @param array $group
- * @param array &$form
- */
-function field_group_pre_render_component_fieldgroup(&$element, $group, &$form) {
-  // @todo May want to access the label position within the template.
-  // $element['#label_display']
-
-  // Add necessary items to variables within theme function.
-  $element += array(
-    '#type' => 'component_fieldgroup',
-    '#theme' => 'component_fieldgroup',
-    '#title' => t($group->label),
-    '#description' => $group->description,
-    '#parents' => array($group->parent_name),
-    '#children' => $group->children,
-    '#settings' => $group->format_settings['instance_settings'],
-    '#view_mode' => $group->mode,
-  );
 }
 
 
@@ -265,7 +156,7 @@ function field_group_pre_render_component_fieldgroup(&$element, $group, &$form) 
  *
  * @return string
  */
-function theme_component_fieldgroup($variables) {
+function theme_componentize_fieldgroup($variables) {
   // Find variables for templates in fields.
   $template_vars = array();
   $entity_object = FALSE;
@@ -287,7 +178,7 @@ function theme_component_fieldgroup($variables) {
     $type = $field_elm['#field_type'];
     $handler = FALSE;
     if ($via_template) {
-      $component_types = componentize_fieldgroup_field_types();
+      $component_types = componentize_fields_types();
       $class_name = isset($component_types[$type]) ? $component_types[$type] : COMPONENTIZE_DEFAULT_FIELD_HANDLER;
       // Load class.
       if (class_exists($class_name)) {
@@ -300,7 +191,7 @@ function theme_component_fieldgroup($variables) {
     }
 
     // Render field.
-    $template_vars[$variable_map] = componentize_render_field(
+    $template_vars[$variable_map] = componentize_fields_render_field(
       $field_name, $field_info, $variables['element'], $entity_object, $handler
     );
 
@@ -317,42 +208,4 @@ function theme_component_fieldgroup($variables) {
   }
 
   return $component->render($template_vars);
-}
-
-
-/**
- * Rendering field via Drupal or component template, handle multiple.
- *
- * @todo Nested components.
- *
- * @param string $field_name
- * @param array $field_info
- * @param array $element
- * @param object $entity_object
- * @param ComponentField $handler
- *
- * @return string|array
- */
-function componentize_render_field($field_name, $field_info, $element, $entity_object, $handler) {
-  $entity_type = $element[$field_name]['#entity_type'];
-  $items = $element[$field_name]['#items'];
-
-  // Allow multi-field.
-  if (($field_info['cardinality'] > 1) || ($field_info['cardinality'] < 0)) {
-    $output = array();
-    foreach ($items as $item) {
-      // Via field handler class or Drupal render.
-      $output[] = ($handler) ? $handler->getValues($item) : field_view_value(
-        $entity_type, $entity_object, $field_name, $item
-      );
-    }
-  }
-  else {
-    // Single value field, same way.
-    $output = ($handler) ? $handler->getValues($items[0]) : field_view_value(
-      $entity_type, $entity_object, $field_name, $items[0]
-    );
-  }
-
-  return $output;
 }

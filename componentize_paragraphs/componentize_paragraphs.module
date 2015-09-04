@@ -1,0 +1,23 @@
+<?php
+/**
+ * @file Render content Paragraphs through a component.
+ */
+
+/**
+ * Implements hook_form_BASE_FORM_ID_alter().
+ */
+function componentize_paragraphs_form_node_form_alter(&$form, &$form_state, $form_id) {
+  // Prevent unwanted form elements.
+}
+
+
+/**
+ * Implements hook_theme().
+ */
+function componentize_paragraphs_theme() {
+  return array(
+    'component_paragraphs' => array(
+      'render element' => 'element',
+    ),
+  );
+}
