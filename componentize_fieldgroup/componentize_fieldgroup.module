@@ -88,16 +88,6 @@ function componentize_get_group_settings($context) {
 
 
 /**
- * Validation for text-input variable settings.
- */
-// function componentize_fieldgroup_validate_variable($element, &$form_state, $form) {
-//   if (!ctype_alnum($element['#value'])) {
-//     form_error($element, t('This field must be alphanumeric.'));
-//   }
-// }
-
-
-/**
  * Reduce modifier choice to single string for multiple select lists in the fieldgroup.
  */
 function componentize_fieldgroup_single_modifier_validate($element, &$form_state, $form) {

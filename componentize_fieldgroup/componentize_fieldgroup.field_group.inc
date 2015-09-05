@@ -58,7 +58,7 @@ function componentize_fieldgroup_field_group_format_settings($group) {
       $form['instance_settings']['modifier'] = array(
         '#title' => t('Modifier'),
         '#type' => 'fieldgroup',
-        '#element_validate' => array('componentize_fieldgroup_single_modifier_validate'),
+        //'#element_validate' => array('componentize_fields_single_modifier_validate'),
         '#weight' => 2,
       );
       foreach (componentize_list() as $component) {

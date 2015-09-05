@@ -10,6 +10,9 @@ function componentize_paragraphs_form_node_form_alter(&$form, &$form_state, $for
   // Prevent unwanted form elements.
 }
 
+/**
+ * Allow setting component within edit form.
+ */
 
 /**
  * Implements hook_theme().
