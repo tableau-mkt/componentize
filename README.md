@@ -15,7 +15,7 @@ Keep a clean front-end structure and make Drupal aware with convenient developer
   * `$conf['composer_manager_vendor_dir'] = 'vendor';`
   * `$conf['composer_manager_file_dir'] = './';`
 1. Build your site root composer config: `drush composer-json-rebuild`
-1. Get library dependencies via `drush composer install --prefer-dist --prefer-stable`
+1. Get library dependencies via `composer install --prefer-dist`
   * [KSS-PHP](https://github.com/scaninc/kss-php), KSS component parser for PHP
   * [Lightncandy](https://github.com/zordius/lightncandy), Handlebars rendering
 1. Get Drupal dependencies (for sub-modules).

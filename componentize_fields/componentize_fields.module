@@ -59,11 +59,103 @@ function componentize_fields_theme() {
  *
  * @param array &$entity_info
  */
-function componentize_fields_entity_info_alter(&$entity_info) {
-  // Add new setting for component on each entity view mode.
-  foreach ($entity_info as $format => $formatter) {
-    $entity_info[$format]['settings'] += array(
-      'component' => '',
+// function componentize_fields_entity_info_alter(&$entity_info) {
+//   // Add new setting for component on each entity view mode.
+//   foreach ($entity_info as $format => $formatter) {
+//     $entity_info[$format]['settings'] += array(
+//       'component' => '',
+//     );
+//   }
+// }
+
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ *
+ * Add component fields to the entity view modes display form.
+ */
+function componentize_fields_form_field_ui_display_overview_form_alter(&$form, &$form_state) {
+  // Get the entity_type, bundle and view mode.
+  $entity_type = $form['#entity_type'];
+  $bundle = $form['#bundle'];
+  $view_mode = $form['#view_mode'];
+  //$form['#export_id'] = $entity_type . '|' . $bundle . '|' . $view_mode;
+
+  // Create vertical tabs.
+  _componentize_fields_ui_create_vertical_tabs($form);
+
+dsm($form);
+
+  // Add layouts form.
+  $form['additional_settings']['componentize'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Components'),
+    '#collapsible' => TRUE,
+    '#collapsed' => FALSE,
+    '#parents' => array('additional_settings'),
+  );
+}
+
+
+/**
+ * Get the current settings.
+ */
+function _componentize_fields_settings_current($view_mode, $property) {
+
+dsm($form['modes']);
+
+  if (isset($form['modes']['view_modes_custom'][$property])) {
+    return $form['modes']['view_modes_custom'][$property];
+  }
+  return '';
+}
+
+
+/**
+ * Create vertical tabs for admin settings.
+ */
+function _componentize_fields_ui_create_vertical_tabs($form) {
+  // Add additional settings vertical tab.
+  if (!isset($form['additional_settings'])) {
+    $form['additional_settings'] = array(
+      '#type' => 'vertical_tabs',
+      '#theme_wrappers' => array('vertical_tabs'),
+      '#prefix' => '<div>',
+      '#suffix' => '</div>',
+      '#tree' => TRUE,
+    );
+    $form['#attached']['js'][] = 'misc/form.js';
+    $form['#attached']['js'][] = 'misc/collapse.js';
+  }
+  // Collect component choice.
+  $form['additional_settings']['componentize']['component'] = array(
+    '#title' => t('Component'),
+    '#type' => 'select',
+    '#options' => drupal_map_assoc(componentize_list(TRUE)),
+    '#default_value' => _componentize_fields_settings_current($form['#view_mode'], 'component'),
+    '#weight' => 1,
+    '#description' => l(t('Manage available components'), 'admin/structure/types/manage/' . $form['#bundle']),
+  );
+  // Collect modifier.
+  // @todo Unify with componentize_fieldsgroups to create modifier form elements.
+  $form['instance_settings']['modifier'] = array(
+    '#title' => t('Modifier'),
+    '#type' => 'fieldgroup',
+    //'#element_validate' => array('componentize_fields_single_modifier_validate'),
+    '#weight' => 2,
+  );
+  foreach (componentize_list() as $component) {
+    //Separate list for each components' modifiers.
+    $form['instance_settings']['modifier'][$component->getName()] = array(
+      '#title' => $component->getName() . ' Modifier',
+      '#type' => 'select',
+      '#options' => drupal_map_assoc($component->getModifiers()),
+      '#states' => array(
+        'visible' => array(
+          ':input[name$="[component]"]' => array('value' => $component->getName()),
+        ),
+      ),
+      '#default_value' => _componentize_fields_settings_current($form['#view_mode'], 'modifier'),
     );
   }
 }
@@ -72,7 +164,7 @@ function componentize_fields_entity_info_alter(&$entity_info) {
 /**
  * Implements hook_field_formatter_settings_form_alter().
  *
- * Add settings to fields within component fieldgroups.
+ * Add settings to fields within component view modes.
  *
  * @param array $settings_form
  * @param array $context
@@ -123,7 +215,7 @@ function componentize_fields_field_formatter_settings_form_alter(&$settings_form
  * Add custom setting for field formatter types within Paragraphs.
  */
 function componentize_fields_field_formatter_info_alter(&$info) {
-  $types = array_keys(componentize_fields_field_types());
+  $types = array_keys(componentize_fields_types());
 
   foreach ($info as $format => $formatter) {
     // Field type is registered.
