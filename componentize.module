@@ -144,17 +144,24 @@ function componentize_list($shallow = FALSE, $reset = FALSE) {
  * @param array $form
  * @param string $default_value
  */
-function _componentize_build_modifier_list_form(&$form, $default_value) {
-  $form['additional_settings']['componentize']['component_modifier'] = array(
+function _componentize_build_modifier_list_form(&$form, $parents, $default_value) {
+  array_push($parents, 'componentize', 'component_modifier');
+
+  drupal_array_set_nested_value($form, $parents, array(
     '#title' => t('Modifier'),
-    '#type' => 'fieldgroup',
+    '#description' => t('Modifer class to add for this entity view mode.'),
+    '#type' => 'fieldset',
     '#element_validate' => array('componentize_single_modifier_validate'),
     '#weight' => 2,
-  );
+  ));
+
+  // Add select list for each components' modifiers.
   foreach (componentize_list() as $component) {
-    //Separate list for each components' modifiers.
-    $form['additional_settings']['componentize']['component_modifier'][$component->getName()] = array(
-      '#title' => $component->getName() . ' Modifier',
+    $location = $parents;
+    array_push($location, $component->getName());
+
+    // Example: $form['additional_settings']['componentize']['component_modifier']['quote'].
+    drupal_array_set_nested_value($form, $location, array(
       '#type' => 'select',
       '#options' => array_merge(array('' => t('- None -')), $component->getModifiers()),
       '#states' => array(
@@ -163,7 +170,7 @@ function _componentize_build_modifier_list_form(&$form, $default_value) {
         ),
       ),
       '#default_value' => $default_value ?: '',
-    );
+    ));
   }
 }
 

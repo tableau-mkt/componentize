@@ -3,3 +3,10 @@ description = Alter components based on context.
 core = 7.x
 dependencies[] = componentize
 dependencies[] = context
+
+; Information added by Drupal.org packaging script on 2015-08-05
+version = "7.x-1.0-alpha3"
+core = "7.x"
+project = "componentize"
+datestamp = "1438739347"
+

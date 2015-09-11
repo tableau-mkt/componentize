@@ -53,8 +53,8 @@ function componentize_fieldgroup_field_group_format_settings($group) {
       '#weight' => 1,
     );
     // Add modifier select form element.
-    _componentize_build_modifier_list_form(
-      $form, _componentize_fieldgroup_display_settings_current($group, 'modifier')
+    _componentize_build_modifier_list_form($form, array('additional_settings'),
+      _componentize_fieldgroup_display_settings_current($group, 'modifier')
     );
   }
 

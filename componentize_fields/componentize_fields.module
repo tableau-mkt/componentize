@@ -78,18 +78,25 @@ function componentize_fields_theme() {
  * Implements hook_permission().
  */
 function componentize_fields_permission() {
-  $permissions = array();
+  $permissions = array('set any entity component config' => array(
+    'title' => t('Set any entity component config'),
+    'description' => t('Set component configurations per entity.'),
+  ));
 
+  // Allow for
   foreach (entity_get_info() as $type) {
-
-dsm($type);
-
-    // foreach ($type['bundles'] as $bundle) {
-    //   // Per bundle permission available.
-    //   $permissions['configure ' . $type . '-' . $bundle . 'component'] = array(
-    //     'title' => t('Configure ' . $type . ': ' . $bundle . ' component'),
-    //   );
-    // }
+    if (isset($type['view modes']) && count($type['view modes']) > 0) {
+      foreach ($type['bundles'] as $bundle) {
+        // Per bundle permission available.
+        $permission = 'set ' . strtolower($type['label']) . ' ' . strtolower($bundle['label']) . ' component config';
+        $permissions[$permission] = array(
+          'title' => t('@bundle (@type) set component config', array(
+            '@type' => $type['label'],
+            '@bundle' => $bundle['label'],
+          )),
+        );
+      }
+    }
   }
 
   return $permissions;
@@ -111,7 +118,7 @@ function componentize_fields_form_field_ui_display_overview_form_alter(&$form, &
   // Create vertical tabs.
   _componentize_fields_ui_create_vertical_tabs($form);
 
-  // Add component form element.
+  // Add component selector.
   $form['additional_settings']['componentize']['component'] = array(
     '#title' => t('Component'),
     '#type' => 'select',
@@ -121,8 +128,18 @@ function componentize_fields_form_field_ui_display_overview_form_alter(&$form, &
     '#description' => l(t('Manage available components'), 'admin/structure/types/manage/' . $form['#bundle']),
   );
 
-  // Add modifier select form element.
-  _componentize_build_modifier_list_form($form, $modifier);
+  // Add modifier selector.
+  _componentize_build_modifier_list_form($form, array('additional_settings'), $modifier);
+
+  // Add modifier per-entity override setting.
+  $form['additional_settings']['componentize']['component_per_entity'] = array(
+    '#title' => t('Use per-entity setting'),
+    '#type' => 'checkbox',
+    '#options' => array(TRUE => t('Yes'), FALSE => t('No')),
+    '#default_value' => TRUE,
+    '#weight' => 10,
+    '#description' => t('Use the per-entity component modifier (set by content author) in this view mode.'),
+  );
 
   // Save settings on submit.
   $form['additional_settings']['componentize']['#new'] = ($settings) ? FALSE : TRUE;
@@ -146,7 +163,8 @@ function componentize_fields_entity_view_mode_save($form, &$form_state) {
   $record->view_mode = $form['#view_mode'];
   $record->component = $settings['component'];
   $record->settings = array(
-    'modifier' => $settings['component_modifier']
+    'modifier' => $settings['component_modifier'],
+    'per_entity' => $settings['component_per_entity'],
   );
 
   // Let other modules alter the settings.
@@ -307,26 +325,23 @@ function componentize_fields_field_formatter_info_alter(&$info) {
  * Implements hook_form_alter().
  */
 function componentize_fields_form_alter(&$form, &$form_state, $form_id) {
-
-// dsm($form);
-
-// dsm(entity_get_info());
-
   // Allow some users to edit component settings per entity.
-  // if (user_access('configure ' . $form['#entity_type'] . '-' . $form['#bundle'] . 'component')) {
+  // if (isset($form['#entity_type']) && isset($form['#bundle'])) {
+  //   $permission = 'set ' . $form['#entity_type'] . ' ' . $form['#bundle'] . ' component config';
+  //   if (user_access('set any entity component config') || user_access($permission)) {
+  //     // Add configs to form.
+  //     $form['componentize'] = array(
+  //       '#type' => 'fieldset',
+  //       '#title' => t('Components'),
+  //       '#collapsible' => TRUE,
+  //       '#collapsed' => FALSE,
+  //       '#weight' => 10,
+  //     );
+  //     $settings = ctools_export_crud_load_all('componentize_fields_entity_view_mode');
+  //     $settings[$form['#entity_type'] . '-' . $form['#bundle']];
 
-    // Determine if entity form.
-    //$types = array_keys(entity_get_info());
-
-    //customer_story_node_form
-    //taxonomy_form_term
-
-    // $sub_string = $form_id;
-    // while(!$found = in_array($sub_string, $types)) {
-    //   $found = TRUE;
-    //   break;
-    // }
-
+  //     _componentize_build_modifier_list_form($form, array(), $default_value);
+  //   }
   // }
 }
 

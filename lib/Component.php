@@ -152,8 +152,8 @@ class Component {
   /**
    * Choose modifier state for later rendering, strip CSS selector prefix.
    *
-   * @todo Store as property, load() via $section->thisgetTitle().
-   *
+   * @todo Store as property, load() via $section->thisgetTitle(). #7
+   *`
    * @param string $modifier
    */
   public function getSection() {
