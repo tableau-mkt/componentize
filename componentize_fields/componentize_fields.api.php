@@ -43,6 +43,20 @@ function hook_componentize_field_types_info_alter($handlers) {
 
 
 /**
+ * Allow altering the component settings for an entity view mode.
+ *
+ * @param object $record
+ *   Settings record to be stored.
+ * @param $form_state
+ */
+function hook_entity_view_mode_component($record, &$form_state) {
+  if ($record->bundle === 'my_bundle') {
+    $record->modifier = 'force-this-modifier';
+  }
+}
+
+
+/**
  * Sample field handler for moving CMS data to component template.
  *
  * See: lib/ComponentField.php

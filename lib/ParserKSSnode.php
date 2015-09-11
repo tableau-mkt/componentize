@@ -57,7 +57,7 @@ class ParserKSSnode extends Parser {
     $commentLines = explode("\n\n", $comment);
     $lastLine = end($commentLines);
 
-    return preg_match('/^\s*Styleguide: \w/i', $lastLine) ||
+    return preg_match('/^\s*Style *guide: \w/i', $lastLine) ||
         preg_match('/^\s*No style guide reference/i', $lastLine);
   }
 

@@ -136,3 +136,50 @@ function componentize_list($shallow = FALSE, $reset = FALSE) {
 
   return $list;
 }
+
+
+/**
+ * Shared function to build modifier form element (includes all components).
+ *
+ * @param array $form
+ * @param string $default_value
+ */
+function _componentize_build_modifier_list_form(&$form, $default_value) {
+  $form['additional_settings']['componentize']['component_modifier'] = array(
+    '#title' => t('Modifier'),
+    '#type' => 'fieldgroup',
+    '#element_validate' => array('componentize_single_modifier_validate'),
+    '#weight' => 2,
+  );
+  foreach (componentize_list() as $component) {
+    //Separate list for each components' modifiers.
+    $form['additional_settings']['componentize']['component_modifier'][$component->getName()] = array(
+      '#title' => $component->getName() . ' Modifier',
+      '#type' => 'select',
+      '#options' => array_merge(array('' => t('- None -')), $component->getModifiers()),
+      '#states' => array(
+        'visible' => array(
+          ':input[name$="[component]"]' => array('value' => $component->getName()),
+        ),
+      ),
+      '#default_value' => $default_value ?: '',
+    );
+  }
+}
+
+
+/**
+ * Reduce modifier choice to single string from multiple select lists.
+ */
+function componentize_single_modifier_validate($element, &$form_state, $form) {
+  $settings = $form_state['values']['additional_settings'];
+  $form_state['values']['additional_settings']['component_modifier'] =
+      $settings['component_modifier'][$settings['component']];
+
+  // // Due to using states for easy admin UI, an array is returned.
+  // $group_name = $form_state['triggering_element']['#field_name'];
+  // $group_values = &$form_state['values']['fields'][$group_name]['format_settings']['settings']['instance_settings'];
+
+  // // Update value.
+  // $group_values['modifier'] = $group_values['modifier'][$group_values['component']];
+}

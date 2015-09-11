@@ -8,6 +8,26 @@ use Componentize\ComponentsField;
 
 
 /**
+ * Implementation of hook_ctools_plugin_api().
+ *
+ * Tell CTools that we support the default_mymodule_presets API.
+ */
+function componentize_fields_ctools_plugin_api($owner, $api) {
+  if ($owner == 'componentize_fields' && $api == 'entity_view_mode_component') {
+    return array('version' => 1);
+  }
+}
+
+
+/**
+ * Export callback for exportable settings schema via ctools.
+ */
+function componentize_fields_export_evm_component($context) {
+  return ctools_export_object('entity_view_mode_component', $context);
+}
+
+
+/**
  * List available field types for variables.
  *
  * @return array
@@ -55,18 +75,25 @@ function componentize_fields_theme() {
 
 
 /**
- * Implements hook_entity_info_alter().
- *
- * @param array &$entity_info
+ * Implements hook_permission().
  */
-// function componentize_fields_entity_info_alter(&$entity_info) {
-//   // Add new setting for component on each entity view mode.
-//   foreach ($entity_info as $format => $formatter) {
-//     $entity_info[$format]['settings'] += array(
-//       'component' => '',
-//     );
-//   }
-// }
+function componentize_fields_permission() {
+  $permissions = array();
+
+  foreach (entity_get_info() as $type) {
+
+dsm($type);
+
+    // foreach ($type['bundles'] as $bundle) {
+    //   // Per bundle permission available.
+    //   $permissions['configure ' . $type . '-' . $bundle . 'component'] = array(
+    //     'title' => t('Configure ' . $type . ': ' . $bundle . ' component'),
+    //   );
+    // }
+  }
+
+  return $permissions;
+}
 
 
 /**
@@ -75,46 +102,116 @@ function componentize_fields_theme() {
  * Add component fields to the entity view modes display form.
  */
 function componentize_fields_form_field_ui_display_overview_form_alter(&$form, &$form_state) {
-  // Get the entity_type, bundle and view mode.
-  $entity_type = $form['#entity_type'];
-  $bundle = $form['#bundle'];
-  $view_mode = $form['#view_mode'];
-  //$form['#export_id'] = $entity_type . '|' . $bundle . '|' . $view_mode;
+  // Current value via ctools exportable schema.
+  $form['#export_id'] = $form['#entity_type'] . '|' . $form['#bundle'] . '|' . $form['#view_mode'];
+  $settings = _componentize_fields_display_settings($form['#export_id']);
+  $component = ($settings) ? $settings->component : '';
+  $modifier = ($settings) ? $settings->settings['modifier'] : '';
 
   // Create vertical tabs.
   _componentize_fields_ui_create_vertical_tabs($form);
 
-dsm($form);
-
-  // Add layouts form.
-  $form['additional_settings']['componentize'] = array(
-    '#type' => 'fieldset',
-    '#title' => t('Components'),
-    '#collapsible' => TRUE,
-    '#collapsed' => FALSE,
-    '#parents' => array('additional_settings'),
+  // Add component form element.
+  $form['additional_settings']['componentize']['component'] = array(
+    '#title' => t('Component'),
+    '#type' => 'select',
+    '#options' => drupal_map_assoc(array_merge(array('' => t('- None -')), componentize_list(TRUE))),
+    '#default_value' => $component,
+    '#weight' => 1,
+    '#description' => l(t('Manage available components'), 'admin/structure/types/manage/' . $form['#bundle']),
   );
+
+  // Add modifier select form element.
+  _componentize_build_modifier_list_form($form, $modifier);
+
+  // Save settings on submit.
+  $form['additional_settings']['componentize']['#new'] = ($settings) ? FALSE : TRUE;
+  $form['#submit'] = array('componentize_fields_entity_view_mode_save');
+}
+
+
+/**
+ * Save the layout settings from the 'Manage display' screen.
+ *
+ * @todo Would be nice to maintain structure but #tree isn't working.
+ */
+function componentize_fields_entity_view_mode_save($form, &$form_state) {
+  $settings = $form_state['values']['additional_settings'];
+
+  // Save layout and add regions if necessary.
+  $record = new stdClass;
+  $record->id = $form['#export_id'];
+  $record->entity_type = $form['#entity_type'];
+  $record->bundle = $form['#bundle'];
+  $record->view_mode = $form['#view_mode'];
+  $record->component = $settings['component'];
+  $record->settings = array(
+    'modifier' => $settings['component_modifier']
+  );
+
+  // Let other modules alter the settings.
+  drupal_alter('entity_view_mode_component_save', $record, $form_state);
+
+  // Store the record.
+  // NOTE: Return value is mostly useless, fails silently.
+  if ($form['additional_settings']['componentize']['#new']) {
+    // Include primary for new records.
+    drupal_write_record('componentize_fields_entity_view_mode', $record);
+  }
+  else {
+    drupal_write_record('componentize_fields_entity_view_mode', $record, array(
+      'entity_type', 'bundle', 'view_mode'
+    ));
+  }
+
+  // Clear entity info cache.
+  cache_clear_all('entity_info', 'cache', TRUE);
 }
 
 
 /**
  * Get the current settings.
+ *
+ * @param string $export_id
+ *   Composite string of entity_type|bundle|view_mode.
+ *
+ * @return array
  */
-function _componentize_fields_settings_current($view_mode, $property) {
-
-dsm($form['modes']);
-
-  if (isset($form['modes']['view_modes_custom'][$property])) {
-    return $form['modes']['view_modes_custom'][$property];
+function _componentize_fields_display_settings($export_id) {
+  $return = &drupal_static(__FUNCTION__ . $export_id);
+  if ($return) return $return;
+  else {
+    $return = array();
   }
-  return '';
+
+  // Get all values from custom schema table.
+  $settings = ctools_export_crud_load_all('componentize_fields_entity_view_mode');
+
+  // Could be handle to allow getting several settings at once, not currently necessary.
+  // Quick return if exact.
+  // if ($view_mode) {
+  //   return isset($settings[$entity_type . '-' . $bundle . '-' . $view_mode] ?: FALSE;
+  // }
+  // // Find relevant and become nested array.
+  // $match = $entity_type;
+  // $match += $bundle ? '-' . $bundle : '';
+  // foreach ($settings as $key => $config) {
+  //   if (!preg_match('/^' . $match . '/', $config)) {
+  //     list($e, $b, $view_mode) = explode('-', $config);
+  //     $return[$e][$b][] = $view_mode;
+  //   }
+  // }
+
+  $return = isset($settings[$export_id]) ? $settings[$export_id] : FALSE;
+
+  return $return;
 }
 
 
 /**
- * Create vertical tabs for admin settings.
+ * Create vertical tab space for admin settings.
  */
-function _componentize_fields_ui_create_vertical_tabs($form) {
+function _componentize_fields_ui_create_vertical_tabs(&$form) {
   // Add additional settings vertical tab.
   if (!isset($form['additional_settings'])) {
     $form['additional_settings'] = array(
@@ -122,42 +219,19 @@ function _componentize_fields_ui_create_vertical_tabs($form) {
       '#theme_wrappers' => array('vertical_tabs'),
       '#prefix' => '<div>',
       '#suffix' => '</div>',
-      '#tree' => TRUE,
     );
     $form['#attached']['js'][] = 'misc/form.js';
     $form['#attached']['js'][] = 'misc/collapse.js';
   }
-  // Collect component choice.
-  $form['additional_settings']['componentize']['component'] = array(
-    '#title' => t('Component'),
-    '#type' => 'select',
-    '#options' => drupal_map_assoc(componentize_list(TRUE)),
-    '#default_value' => _componentize_fields_settings_current($form['#view_mode'], 'component'),
-    '#weight' => 1,
-    '#description' => l(t('Manage available components'), 'admin/structure/types/manage/' . $form['#bundle']),
+  // Add layouts form.
+  $form['additional_settings']['componentize'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Components'),
+    '#collapsible' => TRUE,
+    '#collapsed' => FALSE,
+    '#parents' => array('additional_settings'),
+    '#weight' => 10,
   );
-  // Collect modifier.
-  // @todo Unify with componentize_fieldsgroups to create modifier form elements.
-  $form['instance_settings']['modifier'] = array(
-    '#title' => t('Modifier'),
-    '#type' => 'fieldgroup',
-    //'#element_validate' => array('componentize_fields_single_modifier_validate'),
-    '#weight' => 2,
-  );
-  foreach (componentize_list() as $component) {
-    //Separate list for each components' modifiers.
-    $form['instance_settings']['modifier'][$component->getName()] = array(
-      '#title' => $component->getName() . ' Modifier',
-      '#type' => 'select',
-      '#options' => drupal_map_assoc($component->getModifiers()),
-      '#states' => array(
-        'visible' => array(
-          ':input[name$="[component]"]' => array('value' => $component->getName()),
-        ),
-      ),
-      '#default_value' => _componentize_fields_settings_current($form['#view_mode'], 'modifier'),
-    );
-  }
 }
 
 
@@ -230,6 +304,34 @@ function componentize_fields_field_formatter_info_alter(&$info) {
 
 
 /**
+ * Implements hook_form_alter().
+ */
+function componentize_fields_form_alter(&$form, &$form_state, $form_id) {
+
+// dsm($form);
+
+// dsm(entity_get_info());
+
+  // Allow some users to edit component settings per entity.
+  // if (user_access('configure ' . $form['#entity_type'] . '-' . $form['#bundle'] . 'component')) {
+
+    // Determine if entity form.
+    //$types = array_keys(entity_get_info());
+
+    //customer_story_node_form
+    //taxonomy_form_term
+
+    // $sub_string = $form_id;
+    // while(!$found = in_array($sub_string, $types)) {
+    //   $found = TRUE;
+    //   break;
+    // }
+
+  // }
+}
+
+
+/**
  * Implements hook_entity_view().
  *
  * @param array $entity
@@ -238,13 +340,17 @@ function componentize_fields_field_formatter_info_alter(&$info) {
  * @param string $langcode
  */
 function componentize_fields_entity_view($entity, $type, $view_mode, $langcode) {
+
+
+  if ($entity->content['body']['#view_mode']);
+
   // Take over rendering if set to component mode.
-  if ($entity[$view_mode]['format'] === 'component') {
-    $element += array(
-      '#theme' => 'component_view_mode',
-      '#settings' => $entity[$view_mode]->format_settings['instance_settings'],
-    );
-  }
+  // if ($entity[$view_mode]['format'] === 'component') {
+  //   $element += array(
+  //     '#theme' => 'component_view_mode',
+  //     '#settings' => '', // $entity[$view_mode]->format_settings['instance_settings'],
+  //   );
+  // }
 }
 
 

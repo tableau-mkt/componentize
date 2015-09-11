@@ -1,0 +1,78 @@
+<?php
+/**
+ * @file Install and update hooks for the Componentize! Fields module.
+ */
+
+/**
+ * Implements hook_schema().
+ */
+function componentize_fields_schema() {
+  $schema['componentize_fields_entity_view_mode'] = array(
+    'description' => t('Table storing entity display view mode component configurations.'),
+    'export' => array(
+      'key' => 'id',
+      'key name' => 'Entity, Bundle, and View Mode',
+      'admin_title' => 'title',
+      'primary key' => array('entity_type', 'bundle', 'view_mode'),
+      'identifier' => 'entity_view_mode_component',
+      //'default hook' => 'default_componentize_fields',
+      'export callback' => 'componentize_fields_export_evm_component',
+      'api' => array(
+        'owner' => 'componentize_fields',
+        'api' => 'default_formframes',
+        'minimum_version' => 1,
+        'current_version' => 1,
+      ),
+    ),
+    'fields' => array(
+      'id' => array(
+        'description' => 'Unique id for fast/easy lookups.',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => '',
+      ),
+      'entity_type' => array(
+        'type' => 'varchar',
+        'length' => '128',
+        'description' => 'Entity type, eg: node, taxonomy, user.',
+      ),
+      'bundle' => array(
+        'type' => 'varchar',
+        'length' => '128',
+        'description' => 'Bundle type, eg: page, article.',
+      ),
+      'view_mode' => array(
+        'type' => 'varchar',
+        'length' => '128',
+        'description' => 'Entity view/display mode.',
+      ),
+      'component' => array(
+        'type' => 'varchar',
+        'length' => '128',
+        'description' => 'Component in which to route fields.',
+      ),
+      'settings' => array(
+        'type' => 'blob',
+        'size' => 'normal',
+        'serialize' => TRUE,
+        'description' => 'Default .component--modifier to use.',
+      ),
+    ),
+    'primary key' => array('entity_type', 'bundle', 'view_mode'),
+  );
+
+  return $schema;
+}
+
+/**
+ * Implements hook_uninstall().
+ */
+function componentize_uninstall() {
+  global $conf;
+  foreach($conf as $key => $value) {
+    if (0 === strpos($key, 'componentize_')) {
+      variable_del($conf[$key]);
+    }
+  }
+}

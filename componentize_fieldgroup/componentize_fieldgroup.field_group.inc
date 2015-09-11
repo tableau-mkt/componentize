@@ -44,39 +44,18 @@ function componentize_fieldgroup_field_group_format_settings($group) {
   $form = array('instance_settings' => array('#tree' => TRUE, '#weight' => 5));
 
   // Add optional instance_settings.
-  switch ($group->format_type) {
-    case 'component_fieldgroup':
-
-      $form['instance_settings']['component'] = array(
-        '#title' => t('Component'),
-        '#type' => 'select',
-        '#options' => drupal_map_assoc(componentize_list(TRUE)),
-        '#default_value' => componentize_fieldgroup_settings_default($group, 'component'),
-        '#weight' => 1,
-      );
-
-      $form['instance_settings']['modifier'] = array(
-        '#title' => t('Modifier'),
-        '#type' => 'fieldgroup',
-        //'#element_validate' => array('componentize_fields_single_modifier_validate'),
-        '#weight' => 2,
-      );
-      foreach (componentize_list() as $component) {
-        //Separate list for each components' modifiers.
-        $form['instance_settings']['modifier'][$component->getName()] = array(
-          '#title' => $component->getName() . ' Modifier',
-          '#type' => 'select',
-          '#options' => drupal_map_assoc($component->getModifiers()),
-          '#states' => array(
-            'visible' => array(
-              ':input[name$="[component]"]' => array('value' => $component->getName()),
-            ),
-          ),
-          '#default_value' => componentize_fieldgroup_settings_default($group, 'modifier'),
-        );
-      }
-
-      break;
+  if ($group->format_type === 'component_fieldgroup' {
+    $form['instance_settings']['component'] = array(
+      '#title' => t('Component'),
+      '#type' => 'select',
+      '#options' => drupal_map_assoc(componentize_list(TRUE)),
+      '#default_value' => _componentize_fieldgroup_display_settings_current($group, 'component'),
+      '#weight' => 1,
+    );
+    // Add modifier select form element.
+    _componentize_build_modifier_list_form(
+      $form, _componentize_fieldgroup_display_settings_current($group, 'modifier')
+    );
   }
 
   return $form;
@@ -86,7 +65,7 @@ function componentize_fieldgroup_field_group_format_settings($group) {
 /**
  * Get the settings detault.
  */
-function componentize_fieldgroup_settings_default($group, $property) {
+function _componentize_fieldgroup_display_settings_current($group, $property) {
   if (isset($group->format_settings['instance_settings'][$property])) {
     return $group->format_settings['instance_settings'][$property];
   }

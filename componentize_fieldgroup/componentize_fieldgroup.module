@@ -88,19 +88,6 @@ function componentize_get_group_settings($context) {
 
 
 /**
- * Reduce modifier choice to single string for multiple select lists in the fieldgroup.
- */
-function componentize_fieldgroup_single_modifier_validate($element, &$form_state, $form) {
-  // Due to using states for easy admin UI, an array is returned.
-  $group_name = $form_state['triggering_element']['#field_name'];
-  $group_values = &$form_state['values']['fields'][$group_name]['format_settings']['settings']['instance_settings'];
-
-  // Update value.
-  $group_values['modifier'] = $group_values['modifier'][$group_values['component']];
-}
-
-
-/**
  * Implements hook_field_formatter_settings_summary_alter().
  *
  * @todo Limit field mapping admin UI to fieldgroups, and of correct type. #18
