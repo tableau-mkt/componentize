@@ -3,6 +3,7 @@
  * @file Install and update hooks for the Componentize! Fields module.
  */
 
+
 /**
  * Implements hook_schema().
  */
@@ -65,10 +66,12 @@ function componentize_fields_schema() {
   return $schema;
 }
 
+
 /**
  * Implements hook_uninstall().
  */
-function componentize_uninstall() {
+function componentize_fields_uninstall() {
+  // Remove all configurations.
   global $conf;
   foreach($conf as $key => $value) {
     if (0 === strpos($key, 'componentize_')) {
