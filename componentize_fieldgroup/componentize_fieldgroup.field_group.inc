@@ -3,26 +3,6 @@
  * @file Fieldgroup settings management.
  */
 
-/**
- * Implements hook_field_group_formatter_info().
- *
- * @todo Avoid showing up in form admin.
- */
-function componentize_fieldgroup_field_group_formatter_info() {
-  return array(
-    'display' => array(
-      'component_fieldgroup' => array(
-        'label' => t('Component'),
-        'descripton' => t("This fieldgroup renders the inner content using the selected Component's structure"),
-        'instance_settings' => array(
-          'component' => '',
-          'modifiers' => '',
-        ),
-      ),
-    ),
-  );
-}
-
 
 /**
  * Implements hook_field_group_format_settings().
@@ -44,7 +24,7 @@ function componentize_fieldgroup_field_group_format_settings($group) {
   $form = array('instance_settings' => array('#tree' => TRUE, '#weight' => 5));
 
   // Add optional instance_settings.
-  if ($group->format_type === 'component_fieldgroup' {
+  if ($group->format_type === 'component_fieldgroup') {
     $form['instance_settings']['component'] = array(
       '#title' => t('Component'),
       '#type' => 'select',
@@ -70,30 +50,4 @@ function _componentize_fieldgroup_display_settings_current($group, $property) {
     return $group->format_settings['instance_settings'][$property];
   }
   return '';
-}
-
-
-/**
- * Implements field_group_pre_render_<format-type>.
- * Format: component_fieldgroup
- *
- * @param array &$element
- * @param array $group
- * @param array &$form
- */
-function field_group_pre_render_component_fieldgroup(&$element, $group, &$form) {
-  // @todo May want to access the label position within the template.
-  // $element['#label_display']
-
-  // Add necessary items to variables within theme function.
-  $element += array(
-    '#type' => 'component_fieldgroup',
-    '#theme' => 'componentize_fieldgroup',
-    '#title' => t($group->label),
-    '#description' => $group->description,
-    '#parents' => array($group->parent_name),
-    '#children' => $group->children,
-    '#settings' => $group->format_settings['instance_settings'],
-    '#view_mode' => $group->mode,
-  );
 }

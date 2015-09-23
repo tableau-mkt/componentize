@@ -51,7 +51,7 @@ class ComponentFactory {
   /**
    * Set the factory style guide. Avoids building when unecessary.
    */
-  private function setGuide($path) {
+  private static function setGuide($path) {
     // Use a common static styleguide Parser.
     if (!self::$styleguide) {
       self::$styleguide =  new ParserKSSnode($path);

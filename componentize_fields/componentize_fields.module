@@ -6,13 +6,14 @@
 use Componentize\ComponentFactory;
 use Componentize\ComponentsField;
 
+include(__DIR__ . '/componentize_fields.helpers.inc');
+
 
 /**
  * Implementation of hook_ctools_plugin_api().
- *
- * Tell CTools that we support the default_mymodule_presets API.
  */
 function componentize_fields_ctools_plugin_api($owner, $api) {
+  // Tell CTools that we support the entity_view_mode_component API.
   if ($owner == 'componentize_fields' && $api == 'entity_view_mode_component') {
     return array('version' => 1);
   }
@@ -24,23 +25,6 @@ function componentize_fields_ctools_plugin_api($owner, $api) {
  */
 function componentize_fields_export_evm_component($context) {
   return ctools_export_object('entity_view_mode_component', $context);
-}
-
-
-/**
- * List available field types for variables.
- *
- * @return array
- */
-function componentize_fields_types() {
-  $handlers = &drupal_static(__FUNCTION__);
-
-  if (!$handlers) {
-    $handlers = module_invoke_all('componentize_field_types_info');
-    drupal_alter('componentize_field_types_info', $handlers);
-  }
-
-  return $handlers;
 }
 
 
@@ -67,38 +51,10 @@ function componentize_fields_componentize_field_types_info() {
  */
 function componentize_fields_theme() {
   return array(
-    'component_view_mode' => array(
+    'entity_view_mode_component' => array(
       'render element' => 'element',
     ),
   );
-}
-
-
-/**
- * Shared utility to find bundles with view modes.
- *
- * @return array
- */
-function _componentize_fields_get_bundles_with_view_modes() {
-  $list = &drupal_static(__FUNCTION__, array());
-  if (!empty($list)) {
-    return $list;
-  }
-
-  // Check all the entity types.
-  foreach (entity_get_info() as $type => $type_info) {
-    if (isset($type_info['view modes']) && count($type_info['view modes']) > 0) {
-      foreach ($type_info['bundles'] as $bundle => $bundle_info) {
-        // NOTE: entity type details added to each bundle array element.
-        $list[$bundle] = $bundle_info + array(
-          'entity_type' => $type,
-          'entity_type_label' => $type_info['label'],
-        );
-      }
-    }
-  }
-
-  return $list;
 }
 
 
@@ -109,8 +65,9 @@ function _componentize_fields_get_bundles_with_view_modes() {
  */
 function componentize_fields_form_field_ui_display_overview_form_alter(&$form, &$form_state) {
   // Current value via ctools exportable schema.
-  $form['#export_id'] = $form['#entity_type'] . '|' . $form['#bundle'] . '|' . $form['#view_mode'];
-  $settings = _componentize_fields_get_display_settings($form['#export_id']);
+  $settings = _componentize_fields_get_view_mode_display_settings(
+    $form['#entity_type'], $form['#bundle'], $form['#view_mode']
+  );
   $component = ($settings) ? $settings->component : '';
   $modifier = ($settings) ? $settings->settings['modifier'] : '';
 
@@ -145,14 +102,15 @@ function componentize_fields_entity_view_mode_save($form, &$form_state) {
   $settings = $form_state['values']['additional_settings'];
 
   // Build record to save from meta data and settings.
-  $record = new stdClass;
-  $record->id = $form['#export_id'];
-  $record->entity_type = $form['#entity_type'];
-  $record->bundle = $form['#bundle'];
-  $record->view_mode = $form['#view_mode'];
-  $record->component = $settings['component'];
-  $record->settings = array(
-    'modifier' => $settings['component_modifier'],
+  $record = (object) array(
+    'id' => $form['#entity_type'] . '|' . $form['#bundle'] . '|' . $form['#view_mode'],
+    'entity_type' => $form['#entity_type'],
+    'bundle' => $form['#bundle'],
+    'view_mode' => $form['#view_mode'],
+    'component' => $settings['component'],
+    'settings' => array(
+      'modifier' => $settings['component_modifier'],
+    ),
   );
 
   // Let other modules alter the settings.
@@ -176,76 +134,11 @@ function componentize_fields_entity_view_mode_save($form, &$form_state) {
 
 
 /**
- * Get the current settings.
- *
- * @param string $export_id
- *   Composite string of entity_type|bundle|view_mode.
- *
- * @return array
- */
-function _componentize_fields_get_display_settings($export_id) {
-  $return = &drupal_static(__FUNCTION__ . $export_id);
-  if ($return) {
-    return $return;
-  }
-
-  // Get all values from custom schema table.
-  $settings = ctools_export_crud_load_all('componentize_fields_entity_view_mode');
-
-  // Could be handle to allow getting several settings at once, not currently necessary.
-  // Quick return if exact.
-  // if ($view_mode) {
-  //   return isset($settings[$entity_type . '-' . $bundle . '-' . $view_mode] ?: FALSE;
-  // }
-  // // Find relevant and become nested array.
-  // $match = $entity_type;
-  // $match += $bundle ? '-' . $bundle : '';
-  // foreach ($settings as $key => $config) {
-  //   if (!preg_match('/^' . $match . '/', $config)) {
-  //     list($e, $b, $view_mode) = explode('-', $config);
-  //     $return[$e][$b][] = $view_mode;
-  //   }
-  // }
-
-  $return = isset($settings[$export_id]) ? $settings[$export_id] : FALSE;
-
-  return $return;
-}
-
-
-/**
- * Create vertical tab space for admin settings.
- */
-function _componentize_fields_ui_create_vertical_tabs(&$form) {
-  // Add additional settings vertical tab.
-  if (!isset($form['additional_settings'])) {
-    $form['additional_settings'] = array(
-      '#type' => 'vertical_tabs',
-      '#theme_wrappers' => array('vertical_tabs'),
-      '#prefix' => '<div>',
-      '#suffix' => '</div>',
-    );
-    $form['#attached']['js'][] = 'misc/form.js';
-    $form['#attached']['js'][] = 'misc/collapse.js';
-  }
-  // Add layouts form.
-  $form['additional_settings']['componentize'] = array(
-    '#type' => 'fieldset',
-    '#title' => t('Components'),
-    '#collapsible' => TRUE,
-    '#collapsed' => FALSE,
-    '#parents' => array('additional_settings'),
-    '#weight' => 10,
-  );
-}
-
-
-/**
  * Implements hook_field_formatter_info_alter().
  *
- * @todo Limit field mapping admin UI to correct Paragraphs type. #18
+ * @todo Limit declarations to those within components.
  *
- * Add custom setting for field formatter types within view modes.
+ * Add custom settings for field types within view modes.
  */
 function componentize_fields_field_formatter_info_alter(&$info) {
   $types = array_keys(componentize_fields_types());
@@ -254,7 +147,7 @@ function componentize_fields_field_formatter_info_alter(&$info) {
     if (array_intersect($formatter['field types'], $types)) {
       $info[$format]['settings'] += array(
         'componentize_fields_variable_name' => '',
-        'componentize_fields_via_template' => '',
+        'componentize_fields_via_handler' => '',
       );
     }
   }
@@ -262,57 +155,51 @@ function componentize_fields_field_formatter_info_alter(&$info) {
 
 
 /**
- * Utility for grabbing relevant settings for a field within a display mode.
- *
- * @param array $context
+ * Add variable choices for registered component.
  */
-function _componentize_fields_get_field_display_settings($context) {
-  $export_id = $context['instance']['entity_type'] . '|' . $context['instance']['bundle'] . '|' . $context['view_mode'];
-  $settings = &drupal_static(__FUNCTION__ . $export_id);
-  if ($settings) {
-    return $settings;
-  }
-
-  $all_view_mode_settings = ctools_export_crud_load_all('componentize_fields_entity_view_mode');
-  $settings = array(
-    'export_id' => $export_id,
-    'view_mode' => isset($all_view_mode_settings[$export_id]) ? $all_view_mode_settings[$export_id] : FALSE,
-    'display' => $context['instance']['display'][$context['view_mode']]['settings'],
+function _componentize_fields_generate_variable_form(&$form, $component, $display) {
+  $form['componentize_fields_variable_name'] = array(
+    '#title' => t('Variable'),
+    '#type' => 'select',
+    '#options' => array_merge(
+      array('' => t('- None -')),
+      drupal_map_assoc($component->getVariables())
+    ),
+    '#default_value' => $display['componentize_fields_variable_name'],
   );
-
-  return $settings;
+  $form['componentize_fields_via_handler'] = array(
+    '#title' => t('Data through handler'),
+    '#type' => 'checkbox',
+    '#description' => t('Skip Drupal rendering and send data to template via handler plugin.'),
+    '#default_value' => $display['componentize_fields_via_handler'],
+  );
 }
-
 
 /**
  * Implements hook_field_formatter_settings_form_alter().
  *
  * Add settings to fields within component view modes.
  *
- * @param array $settings_form
+ * @param array &$settings_form
  * @param array $context
  */
 function componentize_fields_field_formatter_settings_form_alter(&$settings_form, $context) {
-  $settings = _componentize_fields_get_field_display_settings($context);
+  $field_display_mode = $context['instance']['display'][$context['view_mode']];
 
-  // Us configured component.
-  if ($settings['view_mode']) {
-    $component = ComponentFactory::create($settings['view_mode']->component);
+  if ($field_display_mode['type'] !== 'hidden') {
+    // Get settings.
+    $view_mode_settings = _componentize_fields_get_view_mode_display_settings(
+      $context['instance']['entity_type'], $context['instance']['bundle'], $context['view_mode']
+    );
 
-    // Choose from registered variables.
-    $settings_form['componentize_fields_variable_name'] = array(
-      '#title' => t('Variable'),
-      '#type' => 'select',
-      '#options' => drupal_map_assoc($component->getVariables()),
-      '#default_value' => $settings['display']['componentize_fields_variable_name'],
-      '#required' => TRUE,
-    );
-    $settings_form['componentize_fields_via_template'] = array(
-      '#title' => t('Data to template'),
-      '#type' => 'checkbox',
-      '#description' => t('Skip rendering and send data to template via handler plugin.'),
-      '#default_value' => $settings['display']['componentize_fields_via_template'],
-    );
+    // Use configured component.
+    if (isset($view_mode_settings->component) && !empty($view_mode_settings->component)) {
+      $component = ComponentFactory::create($view_mode_settings->component);
+      // Choose variables.
+      _componentize_fields_generate_variable_form(
+        $settings_form, $component, $field_display_mode['settings']
+      );
+    }
   }
 }
 
@@ -328,39 +215,58 @@ function componentize_fields_field_formatter_settings_form_alter(&$settings_form
 
 
 /**
+ * Build field settings summary shared function.
+ *
+ * @param string &$summary
+ * @param array $field_settings
+ */
+function _componentize_fields_generate_summary(&$summary, $field_settings) {
+  if (!empty($summary)) {
+    $summary .= '<br />';
+  }
+
+  // Display settings.
+  if (isset($field_settings['componentize_fields_variable_name']) && !empty($field_settings['componentize_fields_variable_name'])) {
+    $variable_name = $field_settings['componentize_fields_variable_name'];
+    $via_handler = $field_settings['componentize_fields_via_handler'];
+
+    $summary .= t('Map to "@variable" template variable', array(
+      '@variable' => $variable_name,
+    ));
+    $summary .= '<br />';
+
+    if ($via_handler) {
+      $summary .= t('Using field handler for template values');
+    }
+    else {
+      $summary .= t('Rendered prior to template');
+    }
+  }
+  else {
+    $summary .= t('No template variable mapped yet!');
+  }
+}
+
+
+/**
  * Implements hook_field_formatter_settings_summary_alter().
  *
  * Display field mapping settings to admins.
  */
 function componentize_fields_field_formatter_settings_summary_alter(&$summary, $context) {
+  $field_display_mode = $context['instance']['display'][$context['view_mode']];
+  $hidden = ($field_display_mode['type'] === 'hidden');
+
   // We know about this type of field.
-  if (in_array($context['field']['type'], array_keys(componentize_fields_types()))) {
-    $settings = _componentize_fields_get_field_display_settings($context);
+  if (!$hidden && in_array($context['field']['type'], array_keys(componentize_fields_types()))) {
+
+    $view_mode_settings = _componentize_fields_get_view_mode_display_settings(
+      $context['instance']['entity_type'], $context['instance']['bundle'], $context['view_mode']
+    );
+
     // A component has been set for the view mode.
-    if (isset($settings['view_mode']->component) && !empty($settings['view_mode']->component)) {
-
-      $variable_name = $settings['display']['componentize_fields_variable_name'];
-      if (!empty($summary)) {
-        $summary .= '<br />';
-      }
-
-      if ($variable_name) {
-        $summary .= t('Map to "@variable" template variable', array(
-          '@variable' => $variable_name,
-        ));
-        $summary .= '<br />';
-
-        if ($settings['display']['componentize_fields_via_template']) {
-          $summary .= t('Using field handler for template values');
-        }
-        else {
-          $summary .= t('Rendered prior to template');
-        }
-      }
-      else {
-        $summary .= t('No template variable mapped yet!');
-      }
-
+    if (isset($view_mode_settings->component) && !empty($view_mode_settings->component)) {
+      _componentize_fields_generate_summary($summary, $field_display_mode['settings']);
     }
   }
 }
@@ -374,20 +280,50 @@ function componentize_fields_field_formatter_settings_summary_alter(&$summary, $
  * @param string $view_mode
  * @param string $langcode
  */
-function componentize_fields_entity_view($entity, $type, $view_mode, $langcode) {
+// function componentize_fields_entity_view($entity, $type, $view_mode, $langcode) {
+// }
 
 
-  if ($entity->content['body']['#view_mode']) {
+/**
+ * Pre render registered within hook_entity_view_alter(). Currently unecessary.
+ *
+ * @param array $element
+ *
+ * @return array
+ */
+// function componentize_fields_entity_view_pre_render($element) {
+//   return $element;
+// }
 
+
+/**
+ * Implements hook_entity_view_alter().
+ *
+ * Prepare entity for theming via Component.
+ *
+ * @param array &$build
+ * @param string $type
+ */
+function componentize_fields_entity_view_alter(&$build, $type) {
+  // View mode settings for the component.
+  $settings = _componentize_fields_get_view_mode_display_settings(
+    $build['#entity_type'], $build['#bundle'], $build['#view_mode']
+  );
+
+  // Check for a configured component.
+  if (isset($settings->component) && !empty($settings->component)) {
+
+
+
+
+    // Currently unecessary.
+    //$build['#pre_render'][] = 'componentize_fields_entity_view_pre_render';
+    $build['#theme'] = 'entity_view_mode_component';
+    // Pass along relevant data for theme layer.
+    $build['#componentize_component'] = $settings->component;
+    $build['#componentize_settings'] = $settings->settings;
+    $build['#componentize_fields'] = _componentize_fields_get_fields($build);
   }
-
-  // Take over rendering if set to component mode.
-  // if ($entity[$view_mode]['format'] === 'component') {
-  //   $element += array(
-  //     '#theme' => 'component_view_mode',
-  //     '#settings' => '', // $entity[$view_mode]->format_settings['instance_settings'],
-  //   );
-  // }
 }
 
 
@@ -398,42 +334,79 @@ function componentize_fields_entity_view($entity, $type, $view_mode, $langcode) 
  *
  * @return string
  */
-function theme_component_view_mode($variables) {
+function theme_entity_view_mode_component($variables) {
+  $element = $variables['element'];
+  $modifier = $element['#componentize_settings']['modifier'];
 
+  // Pass data through component.
+  $component = ComponentFactory::create($element['#componentize_component']);
+
+  // Make modifier available in the template.
+  if ($modifier) {
+    $component->setModifier($modifier);
+  }
+
+  return $component->render($element['#componentize_fields']);
 }
 
+
 /**
- * Rendering field via Drupal or component template, handle multiple.
+ * Rendering field via Drupal or component handler, handle multiple.
  *
- * @todo Nested components.
+ * @todo Nested components?
+ * @todo Allowing picking a formatter beyond just type handler.
  *
  * @param string $field_name
- * @param array $field_info
- * @param array $element
- * @param object $entity_object
- * @param ComponentField $handler
+ * @param array $build
+ *   Entity build render array.
+ * @param array $settings
+ *   Component specific settings.
  *
  * @return string|array
  */
-function componentize_fields_render_field($field_name, $field_info, $element, $entity_object, $handler) {
-  $entity_type = $element[$field_name]['#entity_type'];
-  $items = $element[$field_name]['#items'];
+function componentize_fields_render_field($field_name, $entity_type, $entity, $items, $settings) {
+  $field_info   = field_info_field($field_name);
+  $type         = $field_info['type'];
+  $handler      = FALSE;
+
+  // Use component field handler. See: componentize_fields.api.php
+  if ($settings['componentize_fields_via_handler']) {
+    $fields_types = componentize_fields_types();
+    $class_name = isset($fields_types[$type]) ? $fields_types[$type] : COMPONENTIZE_DEFAULT_FIELD_HANDLER;
+
+    // Load class.
+    if (class_exists($class_name)) {
+      $handler = new $class_name($field_elm);
+    }
+    else {
+      watchdog('componentize', 'Missing class: !class', array('!class' => $class_name), WATCHDOG_ERROR);
+      drupal_set_message(t('Missing class: !class', array('!class' => $class_name)), 'error');
+    }
+  }
 
   // Allow multi-field.
   if (($field_info['cardinality'] > 1) || ($field_info['cardinality'] < 0)) {
     $output = array();
     foreach ($items as $item) {
       // Via field handler class or Drupal render.
-      $output[] = ($handler) ? $handler->getValues($item) : field_view_value(
-        $entity_type, $entity_object, $field_name, $item
-      );
+      if ($handler) {
+        $output[] = $handler->getValues($item);
+      }
+      else {
+        $field_value = field_view_value($entity_type, $entity, $field_name, $item);
+        $output[] = $field_value['#markup'];
+      }
     }
   }
   else {
     // Single value field, same way.
-    $output = ($handler) ? $handler->getValues($items[0]) : field_view_value(
-      $entity_type, $entity_object, $field_name, $items[0]
-    );
+    if ($handler) {
+      $output = $handler->getValues($items[0]);
+    }
+    else {
+      $field_value = field_view_value($entity_type, $entity, $field_name, $items[0]);
+      $output = $field_value['#markup'];
+    }
   }
 
   return $output;

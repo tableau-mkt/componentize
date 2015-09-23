@@ -141,6 +141,8 @@ function componentize_list($shallow = FALSE, $reset = FALSE) {
 /**
  * Shared function to build modifier form element (includes all components).
  *
+ * @todo Multiple forms on the same page with states.
+ *
  * @param array $form
  * @param string $default_value
  */
@@ -163,7 +165,10 @@ function _componentize_build_modifier_list_form(&$form, $parents, $default_value
     // Example: $form['additional_settings']['componentize']['component_modifier']['quote'].
     drupal_array_set_nested_value($form, $location, array(
       '#type' => 'select',
-      '#options' => array_merge(array('' => t('- None -')), $component->getModifiers()),
+      '#options' => array_merge(
+        array('' => t('- None -')),
+        drupal_map_assoc($component->getModifiers())
+      ),
       '#states' => array(
         'visible' => array(
           ':input[name$="[component]"]' => array('value' => $component->getName()),

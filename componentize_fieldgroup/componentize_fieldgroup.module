@@ -3,6 +3,8 @@
  * @file Render content fieldgroups through a component.
  */
 
+use Componentize\ComponentFactory;
+
 
 /**
  * Implements hook_ctools_plugin_api().
@@ -11,6 +13,27 @@ function componentize_fieldgroup_ctools_plugin_api($module, $api) {
   if ($module == 'field_group' && $api == 'field_group') {
     return array('version' => 1);
   }
+}
+
+
+/**
+ * Implements hook_field_group_formatter_info().
+ *
+ * @todo Avoid showing up in form admin.
+ */
+function componentize_fieldgroup_field_group_formatter_info() {
+  return array(
+    'display' => array(
+      'component_fieldgroup' => array(
+        'label' => t('Component'),
+        'descripton' => t("This fieldgroup renders the inner content using the selected Component's structure"),
+        'instance_settings' => array(
+          'component' => '',
+          'modifiers' => '',
+        ),
+      ),
+    ),
+  );
 }
 
 
@@ -27,6 +50,31 @@ function componentize_fieldgroup_theme() {
 
 
 /**
+ * Implements hook_field_formatter_settings_summary_alter().
+ *
+ * Display field mapping settings to admins.
+ */
+function componentize_fieldgroup_field_formatter_settings_summary_alter(&$summary, $context) {
+  $field_display_mode = $context['instance']['display'][$context['view_mode']];
+  $hidden = ($field_display_mode['type'] === 'hidden');
+
+  // We know about this type of field.
+  if (!$hidden && in_array($context['field']['type'], array_keys(componentize_fields_types())) &&
+      isset($field_display_mode['settings']['componentize_fields_variable_name'])) {
+
+    $view_mode_settings = _componentize_fields_get_view_mode_display_settings(
+      $context['instance']['entity_type'], $context['instance']['bundle'], $context['view_mode']
+    );
+
+    // Ensure not entity view mode component.
+    if (!isset($view_mode_settings->component) || empty($view_mode_settings->component)) {
+      _componentize_fields_generate_summary($summary, $field_display_mode['settings']);
+    }
+  }
+}
+
+
+/**
  * Implements hook_field_formatter_settings_form_alter().
  *
  * Add settings to fields within component fieldgroups.
@@ -35,29 +83,20 @@ function componentize_fieldgroup_theme() {
  * @param array $context
  */
 function componentize_fieldgroup_field_formatter_settings_form_alter(&$settings_form, $context) {
-  $display = $context['instance']['display'][$context['view_mode']];
-  $settings = $display['settings'];
-  $group_settings = componentize_get_group_settings($context);
+  $field_display_mode = $context['instance']['display'][$context['view_mode']];
 
-  // Us configured compontent.
-  if (isset($group_settings['component'])) {
-    $component = ComponentFactory::create($group_settings['component']);
-    // Choose from registered variables.
-    $settings_form['componentize_fields_variable_name'] = array(
-      '#title' => t('Variable'),
-      '#type' => 'select',
-      '#options' => drupal_map_assoc($component->getVariables()),
-      '#default_value' => $settings['componentize_fields_variable_name'],
-      '#required' => TRUE,
-    );
-    $settings_form['componentize_fields_via_template'] = array(
-      '#title' => t('Data to template'),
-      '#type' => 'checkbox',
-      '#description' => t('Skip rendering and send data to template via handler plugin.'),
-      '#default_value' => $settings['componentize_fields_via_template'],
-    );
+  if ($field_display_mode['type'] !== 'hidden') {
+    $group_settings = componentize_fieldgroup_get_group_settings($context);
+
+    // Use configured compontent.
+    if (isset($group_settings['component'])) {
+      $component = ComponentFactory::create($group_settings['component']);
+      // Choose variables.
+      _componentize_fields_generate_variable_form(
+        $settings_form, $component, $field_display_mode['settings']
+      );
+    }
   }
-
 }
 
 
@@ -69,7 +108,7 @@ function componentize_fieldgroup_field_formatter_settings_form_alter(&$settings_
  * @param array $context
  * @return array
  */
-function componentize_get_group_settings($context) {
+function componentize_fieldgroup_get_group_settings($context) {
   $field_name = $context['instance']['field_name'];
 
   if (isset($context['form_state'])) {
@@ -78,7 +117,6 @@ function componentize_get_group_settings($context) {
     return $context['form_state']['field_group'][$parent_group]->format_settings['instance_settings'];
   }
   else {
-    // @todo Limit field mapping admin UI to correct fieldgroup type. #18
     // $instance = field_info_instance(
     //   $context['instance']['entity_type'], $field_name, $context['instance']['bundle']
     // );
@@ -88,41 +126,67 @@ function componentize_get_group_settings($context) {
 
 
 /**
- * Implements hook_field_formatter_settings_summary_alter().
+ * Get relevant field data in display mode for rendering component.
  *
- * @todo Limit field mapping admin UI to fieldgroups, and of correct type. #18
- *
- * Display field mapping settings to admins.
+ * @param array $element
+ * @return array
  */
-function componentize_fieldgroup_field_formatter_settings_summary_alter(&$summary, $context) {
-  $display = $context['instance']['display'][$context['view_mode']];
-  $variable_name = $display['settings']['componentize_fields_variable_name'];
-  $via_template = $display['settings']['componentize_fields_via_template'];
+function _componentize_fieldgroup_get_fields($element, $group) {
+  $entity_type = $group->entity_type;
+  $entity = FALSE;
+  $vars = array();
 
-  //$group_settings = componentize_get_group_settings($context);
-  //if (isset($group_settings['component'])) {
+  foreach ($group->children as $name) {
+    $field_info = field_info_instance(
+      $element[$name]['#entity_type'], $name, $element[$name]['#bundle']
+    );
 
-  if (isset($variable_name)) {
-    if (!empty($summary)) {
-      $summary .= '<br />';
-    }
+    $settings = _componentize_fields_get_field_settings(
+      $field_info, $element[$name]['#view_mode']
+    );
 
-    if ($variable_name) {
-      $summary .= t('Map to "@variable" template variable', array(
-        '@variable' => $variable_name,
-      ));
-    }
-    else {
-      $summary .= t('No template variable mapped yet!');
-    }
+    // Only include componentized fields.
+    if ($settings) {
+      // Prepare data for rendering.
+      $entity = $entity ?: $element[$name]['#object'];
+      $items = field_get_items($entity_type, $entity, $name);
 
-    if ($via_template) {
-      $summary .= t('Using field handler for template values');
-    }
-    else {
-      $summary .= t('Rendered prior to template');
+      // Prepare field for template.
+      $template_var = $settings['componentize_fields_variable_name'];
+      $vars[$template_var . '_label'] = $element[$name]['#title'];
+      $vars[$template_var] = componentize_fields_render_field(
+        $name, $entity_type, $entity, $element[$name]['#items'], $settings
+      );
     }
   }
+
+  return $vars;
+}
+
+
+/**
+ * Implements field_group_pre_render_<format-type>.
+ * Format: component_fieldgroup
+ *
+ * @param array &$element
+ * @param array $group
+ * @param array &$form
+ */
+function field_group_pre_render_component_fieldgroup(&$element, $group, &$form) {
+  // @todo May want to access the label position within the template.
+  // $element['#label_display']
+
+  // Add necessary items to variables within theme function.
+  $element += array(
+    '#type' => 'component_fieldgroup',
+    '#theme' => 'component_fieldgroup',
+    '#title' => t($group->label),
+    '#description' => $group->description,
+    '#parents' => array($group->parent_name),
+    '#componentize_fields' => _componentize_fieldgroup_get_fields($element, $group),
+    '#componentize_settings' => $group->format_settings['instance_settings'],
+    '#view_mode' => $group->mode,
+  );
 }
 
 
@@ -133,56 +197,19 @@ function componentize_fieldgroup_field_formatter_settings_summary_alter(&$summar
  *
  * @return string
  */
-function theme_componentize_fieldgroup($variables) {
-  // Find variables for templates in fields.
-  $template_vars = array();
-  $entity_object = FALSE;
-  foreach ($variables['element']['#children'] as $field_name) {
-    $field_elm = $variables['element'][$field_name];
-
-    // Load it once from a field.
-    $entity_object = $entity_object ?: $field_elm['#object'];
-
-    // Get data from field settings within group.
-    $instance = field_info_instance(
-      $field_elm['#entity_type'], $field_name, $field_elm['#bundle']
-    );
-    $variable_map = $instance['display'][$variables['element']['#view_mode']]['settings']['componentize_fieldgroup_variable_name'];
-    $via_template = TRUE; //$field_elm['#settings']['componentize_fieldgroup_via_template'];
-
-    // Field type handling done by pluggable class.
-    $field_info = field_info_field($field_name);
-    $type = $field_elm['#field_type'];
-    $handler = FALSE;
-    if ($via_template) {
-      $component_types = componentize_fields_types();
-      $class_name = isset($component_types[$type]) ? $component_types[$type] : COMPONENTIZE_DEFAULT_FIELD_HANDLER;
-      // Load class.
-      if (class_exists($class_name)) {
-        $handler = new $class_name($field_elm);
-      }
-      else {
-        watchdog('componentize', 'Missing class: !class', array('!class' => $class_name), WATCHDOG_ERROR);
-        drupal_set_message(t('Missing class: !class', array('!class' => $class_name)), 'error');
-      }
-    }
-
-    // Render field.
-    $template_vars[$variable_map] = componentize_fields_render_field(
-      $field_name, $field_info, $variables['element'], $entity_object, $handler
-    );
-
-    // Add field label to variables for all types.
-    $template_vars[$variable_map . '_label'] = $instance['label'];
-  }
+function theme_component_fieldgroup($variables) {
+  $element = $variables['element'];
+  // @todo Deal with multiple forms on page issue with modifier saving.
+  $modifier = isset($element['#componentize_settings']['modifier']) ?
+      $element['#componentize_settings']['modifier'] : FALSE;
 
   // Pass data through template.
-  $component = ComponentFactory::create($variables['element']['#settings']['component']);
+  $component = ComponentFactory::create($element['#componentize_settings']['component']);
 
   // Make modifier available in the template.
-  if (isset($element['#settings']['modifier'])) {
-    $component->setModifier($variables['element']['#settings']['modifier']);
+  if ($modifier) {
+    $component->setModifier($modifier);
   }
 
-  return $component->render($template_vars);
+  return $component->render($element['#componentize_fields']);
 }
