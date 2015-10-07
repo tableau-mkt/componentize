@@ -9,7 +9,7 @@
  *
  * @return array
  */
-function componentize_fields_types() {
+function componentize_entity_types() {
   $handlers = &drupal_static(__FUNCTION__);
 
   if (!$handlers) {
@@ -26,7 +26,7 @@ function componentize_fields_types() {
  *
  * @return array
  */
-function _componentize_fields_get_bundles_with_view_modes() {
+function _componentize_entity_get_bundles_with_view_modes() {
   $list = &drupal_static(__FUNCTION__, array());
   if (!empty($list)) {
     return $list;
@@ -54,7 +54,7 @@ function _componentize_fields_get_bundles_with_view_modes() {
  *
  * @param array $form
  */
-function _componentize_fields_ui_create_vertical_tabs(&$form) {
+function _componentize_entity_ui_create_vertical_tabs(&$form) {
   // Add additional settings vertical tab.
   if (!isset($form['additional_settings'])) {
     $form['additional_settings'] = array(
@@ -73,6 +73,7 @@ function _componentize_fields_ui_create_vertical_tabs(&$form) {
     '#collapsible' => TRUE,
     '#collapsed' => FALSE,
     '#parents' => array('additional_settings'),
+    '#tree' => TRUE,
     '#weight' => 10,
   );
 }
@@ -86,14 +87,14 @@ function _componentize_fields_ui_create_vertical_tabs(&$form) {
  *
  * @return array
  */
-function _componentize_fields_get_view_mode_display_settings($entity_type, $bundle, $view_mode) {
-  $export_id  = $entity_type . '|' . $bundle . '|' . $view_mode;
-  $default_id = $entity_type . '|' . $bundle . '|default';
+function _componentize_entity_get_view_mode_display_settings($entity_type, $bundle, $view_mode) {
+  $export_id  = implode('|', array($entity_type, $bundle, $view_mode));
+  $default_id = implode('|', array($entity_type, $bundle, 'default'));
 
   $settings = &drupal_static(__FUNCTION__);
   if (!$settings) {
     // Get all values from custom schema table.
-    $settings = ctools_export_crud_load_all('componentize_fields_entity_view_mode');
+    $settings = ctools_export_crud_load_all('componentize_entity_entity_view_mode');
   }
 
   if (isset($settings[$export_id])) {
@@ -130,19 +131,15 @@ function _componentize_fields_get_view_mode_display_settings($entity_type, $bund
  * @return array
  *   Associative list of template data.
  */
-function _componentize_fields_get_fields($build) {
+function _componentize_entity_get_fields($build) {
   $view_mode = $build['#view_mode'];
   $fields = field_info_instances($build['#entity_type'], $build['#bundle']);
-  $entity = isset($build['#entity']) ? $build['#entity'] : $build['#' . $entity_type];
   $entity_type = $build['#entity_type'];
+  $entity = isset($build['#entity']) ? $build['#entity'] : $build['#' . $entity_type];
   $vars = array();
 
   foreach ($fields as $name => $field) {
-
-
-
-
-    $settings = _componentize_fields_get_field_settings($field, $view_mode);
+    $settings = _componentize_entity_get_field_settings($field, $view_mode);
 
     // Only include componentized fields.
     if ($settings) {
@@ -150,9 +147,9 @@ function _componentize_fields_get_fields($build) {
       $items = field_get_items($entity_type, $entity, $name);
 
       // Build out template data.
-      $template_var = $settings['componentize_fields_variable_name'];
+      $template_var = $settings['componentize_entity_variable_name'];
       $vars[$template_var . '_label'] = $field['label'];
-      $vars[$template_var] = componentize_fields_render_field(
+      $vars[$template_var] = componentize_entity_render_field(
         $name, $entity_type, $entity, $items, $settings
       );
     }
@@ -170,17 +167,17 @@ function _componentize_fields_get_fields($build) {
  *
  * @return array|boolean
  */
-function _componentize_fields_get_field_settings($field, $view_mode) {
+function _componentize_entity_get_field_settings($field, $view_mode) {
   $display = $field['display'];
 
   if (isset($display[$view_mode]) &&
-      isset($display[$view_mode]['settings']['componentize_fields_variable_name']) &&
-      !empty($display[$view_mode]['settings']['componentize_fields_variable_name'])) {
+      isset($display[$view_mode]['settings']['componentize_entity_variable_name']) &&
+      !empty($display[$view_mode]['settings']['componentize_entity_variable_name'])) {
     return $display[$view_mode]['settings'];
   }
 
-  if (isset($display['default']['settings']['componentize_fields_variable_name']) &&
-      !empty($display['default']['settings']['componentize_fields_variable_name'])) {
+  if (isset($display['default']['settings']['componentize_entity_variable_name']) &&
+      !empty($display['default']['settings']['componentize_entity_variable_name'])) {
     return $display['default']['settings'];
   }
 

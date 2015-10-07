@@ -1,11 +1,11 @@
 <?php
 /**
- * @file Field handler: file
+ * @file Field handler: link
  */
 
 namespace Componentize;
 
-class ComponentFieldFile extends ComponentField {
+class ComponentFieldLink extends ComponentField {
 
   /**
    * Variables from field value(s): file.
@@ -18,8 +18,9 @@ class ComponentFieldFile extends ComponentField {
    */
   public function getValues($item) {
     return array(
-      'uri' => $item['uri'],
-      'description' => $item['description']
+      'url' => $item['url'],
+      'title' => $item['title'],
+      'attributes' => $item['attributes'],
     );
   }
 

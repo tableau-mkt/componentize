@@ -52,47 +52,41 @@ function componentize_fieldgroup_theme() {
 /**
  * Implements hook_field_formatter_settings_summary_alter().
  *
+ * @todo Add fieldgroup mapping back.
+ *
  * Display field mapping settings to admins.
  */
-function componentize_fieldgroup_field_formatter_settings_summary_alter(&$summary, $context) {
-  $field_display_mode = $context['instance']['display'][$context['view_mode']];
-  $hidden = ($field_display_mode['type'] === 'hidden');
+// function componentize_fieldgroup_field_formatter_settings_summary_alter(&$summary, $context) {
+//   // Get the settings for this field's parent group.
+//   $group_settings = _componentize_fieldgroup_check_group_settings($context);
 
-  // We know about this type of field.
-  if (!$hidden && in_array($context['field']['type'], array_keys(componentize_fields_types())) &&
-      isset($field_display_mode['settings']['componentize_fields_variable_name'])) {
-
-    $view_mode_settings = _componentize_fields_get_view_mode_display_settings(
-      $context['instance']['entity_type'], $context['instance']['bundle'], $context['view_mode']
-    );
-
-    // Ensure not entity view mode component.
-    if (!isset($view_mode_settings->component) || empty($view_mode_settings->component)) {
-      _componentize_fields_generate_summary($summary, $field_display_mode['settings']);
-    }
-  }
-}
+//   // This has a component set.
+//   if ($group_settings && isset($group_settings['component']) && !empty($group_settings['component'])) {
+//     $field_display_mode = $context['instance']['display'][$context['view_mode']];
+//     _componentize_entity_generate_summary($summary, $field_display_mode['settings']);
+//   }
+// }
 
 
 /**
  * Implements hook_field_formatter_settings_form_alter().
  *
- * Add settings to fields within component fieldgroups.
- *
  * @param array $settings_form
  * @param array $context
  */
 function componentize_fieldgroup_field_formatter_settings_form_alter(&$settings_form, $context) {
-  $field_display_mode = $context['instance']['display'][$context['view_mode']];
-
-  if ($field_display_mode['type'] !== 'hidden') {
-    $group_settings = componentize_fieldgroup_get_group_settings($context);
+  // Obtain group settings from field via form data.
+  if (isset($context['form_state'])) {
+    // @todo More carefully confirm there is a fieldgroup set.
+    //$parent_group = $context['form_state']['input']['fields'][$field_name]['parent'];
+    //$group_settings = $context['form_state']['field_group'][$parent_group]->format_settings['instance_settings'];
+    $group_settings = _componentize_fieldgroup_check_group_settings($context);
 
     // Use configured compontent.
     if (isset($group_settings['component'])) {
       $component = ComponentFactory::create($group_settings['component']);
       // Choose variables.
-      _componentize_fields_generate_variable_form(
+      _componentize_entity_generate_variable_form(
         $settings_form, $component, $field_display_mode['settings']
       );
     }
@@ -101,27 +95,32 @@ function componentize_fieldgroup_field_formatter_settings_form_alter(&$settings_
 
 
 /**
- * Obtain group settings from field via form data.  Handles multiple-contexts.
- *
- * @todo Find if this field is in the group from the _summary_alter() context.
+ * Find the group for this field.
  *
  * @param array $context
+ *
  * @return array
  */
-function componentize_fieldgroup_get_group_settings($context) {
-  $field_name = $context['instance']['field_name'];
+function _componentize_fieldgroup_check_group_settings($context) {
+  $field_display_mode = $context['instance']['display'][$context['view_mode']];
+  $hidden = ($field_display_mode['type'] === 'hidden');
+  $field = $context['field'];
 
-  if (isset($context['form_state'])) {
-    // @todo More carefully confirm there is a fieldgroup set.
-    $parent_group = $context['form_state']['input']['fields'][$field_name]['parent'];
-    return $context['form_state']['field_group'][$parent_group]->format_settings['instance_settings'];
+  // We know about this type of field.
+  if (!$hidden && in_array($field['type'], array_keys(componentize_entity_types()))) {
+    // Check relevant groups.
+    $groups = field_group_info_groups(
+      $context['instance']['entity_type'], $context['instance']['bundle'], $context['view_mode']
+    );
+    foreach ($groups as $group) {
+      // Field exists within group, and presence of settings.
+      if (in_array($field['field_name'], $group->children) && isset($group->format_settings['instance_settings'])) {
+        return $group->format_settings['instance_settings'];
+      }
+    }
   }
-  else {
-    // $instance = field_info_instance(
-    //   $context['instance']['entity_type'], $field_name, $context['instance']['bundle']
-    // );
-    return FALSE;
-  }
+
+  return FALSE;
 }
 
 
@@ -132,35 +131,50 @@ function componentize_fieldgroup_get_group_settings($context) {
  * @return array
  */
 function _componentize_fieldgroup_get_fields($element, $group) {
-  $entity_type = $group->entity_type;
   $entity = FALSE;
   $vars = array();
 
   foreach ($group->children as $name) {
-    $field_info = field_info_instance(
-      $element[$name]['#entity_type'], $name, $element[$name]['#bundle']
-    );
+    // Only present on array if a value exists.
+    if (isset($element[$name])) {
+      $field_info = field_info_instance($group->entity_type, $name, $group->bundle);
+      $settings = _componentize_entity_get_field_settings($field_info, $group->mode);
 
-    $settings = _componentize_fields_get_field_settings(
-      $field_info, $element[$name]['#view_mode']
-    );
+      // Only include componentized fields.
+      if ($settings) {
+        // Prepare data for rendering.
+        $entity = $entity ?: $element[$name]['#object'];
+        $items = field_get_items($group->entity_type, $entity, $name);
 
-    // Only include componentized fields.
-    if ($settings) {
-      // Prepare data for rendering.
-      $entity = $entity ?: $element[$name]['#object'];
-      $items = field_get_items($entity_type, $entity, $name);
-
-      // Prepare field for template.
-      $template_var = $settings['componentize_fields_variable_name'];
-      $vars[$template_var . '_label'] = $element[$name]['#title'];
-      $vars[$template_var] = componentize_fields_render_field(
-        $name, $entity_type, $entity, $element[$name]['#items'], $settings
-      );
+        // Prepare field for template.
+        $template_var = $settings['componentize_entity_variable_name'];
+        $vars[$template_var . '_label'] = $element[$name]['#title'];
+        $vars[$template_var] = componentize_entity_render_field(
+          $name, $group->entity_type, $entity, $element[$name]['#items'], $settings
+        );
+      }
     }
   }
 
   return $vars;
+}
+
+
+/**
+ * Reduce modifier choice to single string from multiple select lists.
+ *
+ * NOTE: Validate fires, and form_state=submitted is always TRUE for AJAX revealed forms.
+ */
+function componentize_fieldgroup_single_modifier_validate($element, &$form_state, $form) {
+  // Reduce modifier array value to string (multiple inputs) for chosen component.
+  foreach ($form_state['field_group'] as $group_name => $group) {
+    $settings = $group->format_settings['instance_settings'];
+    if (gettype($settings['component_modifier']) === 'array') {
+      // Update the raw input.
+      $form_state['values']['fields'][$group_name]['format_settings']['settings']['instance_settings']['component_modifier'] =
+        $settings['component_modifier'][$settings['component']];
+    }
+  }
 }
 
 
@@ -183,7 +197,7 @@ function field_group_pre_render_component_fieldgroup(&$element, $group, &$form) 
     '#title' => t($group->label),
     '#description' => $group->description,
     '#parents' => array($group->parent_name),
-    '#componentize_fields' => _componentize_fieldgroup_get_fields($element, $group),
+    '#componentize_entity' => _componentize_fieldgroup_get_fields($element, $group),
     '#componentize_settings' => $group->format_settings['instance_settings'],
     '#view_mode' => $group->mode,
   );
@@ -211,5 +225,5 @@ function theme_component_fieldgroup($variables) {
     $component->setModifier($modifier);
   }
 
-  return $component->render($element['#componentize_fields']);
+  return $component->render($element['#componentize_entity']);
 }

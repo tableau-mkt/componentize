@@ -150,6 +150,16 @@ class Component {
 
 
   /**
+   * Provide access to template.
+   *
+   * @return string
+   */
+  public function getTemplate() {
+    return $this->template;
+  }
+
+
+  /**
    * Choose modifier state for later rendering, strip CSS selector prefix.
    *
    * @todo Store as property, load() via $section->thisgetTitle(). #7

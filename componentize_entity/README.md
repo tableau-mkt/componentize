@@ -1,8 +1,8 @@
-# Componentize Fields
+# Componentize Entity
 
 **Render field content through a component.**
 
-### Display settings
+## Display settings
 
 Visit the "Manage display" admin tab on various entity types which have view modes.  Here you can set the component modifier class per view mode when the entity is displayed.
 

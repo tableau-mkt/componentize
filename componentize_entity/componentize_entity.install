@@ -7,8 +7,8 @@
 /**
  * Implements hook_schema().
  */
-function componentize_fields_schema() {
-  $schema['componentize_fields_entity_view_mode'] = array(
+function componentize_entity_schema() {
+  $schema['componentize_entity_entity_view_mode'] = array(
     'description' => t('Table storing entity display view mode component configurations.'),
     'export' => array(
       'key' => 'id',
@@ -16,11 +16,11 @@ function componentize_fields_schema() {
       'admin_title' => 'title',
       'primary key' => array('entity_type', 'bundle', 'view_mode'),
       'identifier' => 'entity_view_mode_component',
-      //'default hook' => 'default_componentize_fields',
-      'export callback' => 'componentize_fields_export_evm_component',
+      //'default hook' => 'default_componentize_entity',
+      'export callback' => 'componentize_entity_export_evm_component',
       'api' => array(
-        'owner' => 'componentize_fields',
-        'api' => 'default_formframes',
+        'owner' => 'componentize_entity',
+        'api' => 'entity_view_mode_component',
         'minimum_version' => 1,
         'current_version' => 1,
       ),
@@ -70,7 +70,7 @@ function componentize_fields_schema() {
 /**
  * Implements hook_uninstall().
  */
-function componentize_fields_uninstall() {
+function componentize_entity_uninstall() {
   // Remove all configurations.
   global $conf;
   foreach($conf as $key => $value) {

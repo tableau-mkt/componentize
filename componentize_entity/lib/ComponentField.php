@@ -8,8 +8,7 @@ namespace Componentize;
 class ComponentField {
 
   public $type,
-         $format,
-         $field;
+         $field_info;
 
   /**
    * Build field data.
@@ -17,10 +16,9 @@ class ComponentField {
    * @todo Alter params to match entity view scenarios.
    *       See: componentize_fieldgroup.api.php
    */
-  public function __construct($field) {
-    $this->field = $field;
-    $this->format = $field['#formatter'];
-    $this->type = $field['#field_type'];
+  public function __construct($field_info) {
+    $this->field_info = $field_info;
+    $this->type = $field_info['type'];
   }
 
   /**

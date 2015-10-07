@@ -1,6 +1,0 @@
-name = Componentize Paragraphs
-description = Render content Paragraphs through a component.
-core = 7.x
-dependencies[] = componentize
-dependencies[] = entity
-dependencies[] = field_formatter_settings

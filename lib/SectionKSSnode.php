@@ -24,7 +24,7 @@ class SectionKSSnode extends Section {
       $referenceComment = $this->getReferenceComment();
       $referenceComment = preg_replace('/\.$/', '', $referenceComment);
 
-      if (preg_match('/^\s*Style *guide:\s+(.*)/i', $referenceComment, $matches)) {
+      if (preg_match('/^\s*[sS]tyleguide:*\s+(.*)/i', $referenceComment, $matches)) {
         $this->reference = trim($matches[1]);
       }
     }
@@ -44,7 +44,7 @@ class SectionKSSnode extends Section {
     $commentSections = $this->getCommentSections();
     $lastLine = end($commentSections);
 
-    if (preg_match('/^\s*Style *guide: \w/i', $lastLine) ||
+    if (preg_match('/^\s*[sS]tyleguide:*\s+(.*)/i', $lastLine) ||
         preg_match('/^\s*No styleguide reference/i', $lastLine)) {
       $referenceComment = $lastLine;
     }

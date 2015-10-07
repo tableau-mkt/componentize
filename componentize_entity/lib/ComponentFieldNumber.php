@@ -19,6 +19,7 @@ class ComponentFieldNumber extends ComponentField {
   public function getValues($item) {
     return array(
       'prefix' => $item['prefix'],
+      'value' => $item['value'],
     );
   }
 

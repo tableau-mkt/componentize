@@ -21,21 +21,22 @@ function componentize_fieldgroup_field_group_format_settings($group) {
   //$formatter = $field_group_types[$mode][$group->format_type];
 
   // Wrapper for extra settings to use by others.
-  $form = array('instance_settings' => array('#tree' => TRUE, '#weight' => 5));
+  $form = array('instance_settings' => array(
+    '#tree' => TRUE,
+    '#weight' => 5
+  ));
 
   // Add optional instance_settings.
   if ($group->format_type === 'component_fieldgroup') {
-    $form['instance_settings']['component'] = array(
-      '#title' => t('Component'),
-      '#type' => 'select',
-      '#options' => drupal_map_assoc(componentize_list(TRUE)),
-      '#default_value' => _componentize_fieldgroup_display_settings_current($group, 'component'),
-      '#weight' => 1,
-    );
     // Add modifier select form element.
-    _componentize_build_modifier_list_form($form, array('additional_settings'),
-      _componentize_fieldgroup_display_settings_current($group, 'modifier')
+    _componentize_build_modifier_list_form(
+      $form,
+      array('instance_settings'),
+      _componentize_fieldgroup_display_settings_current($group, 'component'),
+      _componentize_fieldgroup_display_settings_current($group, 'component_modifier')
     );
+    $form['instance_settings']['component']['#element_validate'][] =
+        'componentize_fieldgroup_single_modifier_validate';
   }
 
   return $form;
@@ -43,7 +44,7 @@ function componentize_fieldgroup_field_group_format_settings($group) {
 
 
 /**
- * Get the settings detault.
+ * Get the detault settings within fieldgroups only.
  */
 function _componentize_fieldgroup_display_settings_current($group, $property) {
   if (isset($group->format_settings['instance_settings'][$property])) {
