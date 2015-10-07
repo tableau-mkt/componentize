@@ -136,3 +136,81 @@ function componentize_list($shallow = FALSE, $reset = FALSE) {
 
   return $list;
 }
+
+
+/**
+ * Shared function to build modifier form element (includes all components).
+ *
+ * @todo Multiple forms on the same page with states.
+ *
+ * @param array $form
+ * @param string $default_value
+ */
+function _componentize_build_modifier_list_form(&$form, $parents, $default_component, $default_modifier) {
+  $form_number = &drupal_static(__FUNCTION__, 0);
+
+  // Main component choice.
+  $component_parents = array_merge($parents, array('component'));
+  drupal_array_set_nested_value($form, $component_parents, array(
+    '#title' => t('Component'),
+    '#type' => 'select',
+    '#options' => array_merge(
+      array('' => t('- None -')),
+      drupal_map_assoc(componentize_list(TRUE))
+    ),
+    '#default_value' => $default_component,
+    '#attributes' => array('class' => array('form-num-' . $form_number)),
+    '#weight' => 1,
+  ));
+
+  // Modifiers.
+  array_push($parents, 'component_modifier');
+  drupal_array_set_nested_value($form, $parents, array(
+    '#title' => t('Modifier'),
+    '#description' => t('Modifier class to add for this entity view mode.'),
+    '#type' => 'fieldset',
+    '#element_validate' => array('componentize_single_modifier_validate'),
+    '#weight' => 2,
+  ));
+  // Add select list for each components' modifiers.
+  foreach (componentize_list() as $component) {
+    $location = $parents;
+    array_push($location, $component->getName());
+
+    // Example: $form['additional_settings']['componentize']['component_modifier']['quote'].
+    drupal_array_set_nested_value($form, $location, array(
+      '#type' => 'select',
+      '#options' => array_merge(
+        array('' => t('- None -')),
+        drupal_map_assoc($component->getModifiers())
+      ),
+      '#states' => array(
+        'visible' => array(
+          'select[name="component"].form-num-' . $form_number .
+          ',select[name$="[component]"].form-num-' . $form_number => array(
+            'value' => $component->getName(),
+          ),
+        ),
+      ),
+      '#default_value' => $default_modifier ?: '',
+    ));
+  }
+
+  $form_number++;
+}
+
+
+/**
+ * Reduce modifier choice to single string from multiple select lists.
+ *
+ * NOTE: Validate fires, and form_state=submitted is always TRUE for AJAX revealed forms.
+ */
+function componentize_single_modifier_validate($element, &$form_state, $form) {
+  $vals = $form_state['values'];
+
+  // Reduce modifier array value to string (multiple inputs) for chosen component.
+  if (isset($vals['additional_settings']) && gettype($vals['additional_settings']['component_modifier']) === 'array') {
+    $settings = $vals['additional_settings'];
+    $form_state['values']['additional_settings']['component_modifier'] = $settings['component_modifier'][$settings['component']];
+  }
+}

@@ -12,6 +12,7 @@ class Component {
           $configs,
           $styleguide,
           $namespace,
+          $section,
           $title,
           $modifiers,
           $modifier,
@@ -149,9 +150,19 @@ class Component {
 
 
   /**
+   * Provide access to template.
+   *
+   * @return string
+   */
+  public function getTemplate() {
+    return $this->template;
+  }
+
+
+  /**
    * Choose modifier state for later rendering, strip CSS selector prefix.
    *
-   * @todo Store as property, load() via $section->thisgetTitle().
+   * @todo Store as property, load() via $section->thisgetTitle(). #7
    *
    * @param string $modifier
    */
@@ -190,26 +201,26 @@ class Component {
 
     // Prefer the passed guide, if present.
     $this->styleguide = $styleguide ?: $this->styleguide;
-    $section = $this->styleguide->getSection($this->name);
+    $this->section = $this->styleguide->getSection($this->name);
 
     // Simple properties.
-    $title = $section->getTitle();
+    $title = $this->section->getTitle();
 
     // Variable names within template.
-    $variables = $this->findVariables($title, $section->getMarkup());
+    $variables = $this->findVariables($title, $this->section->getMarkup());
 
     // Modifiers.
     $modifiers = array();
-    foreach ($section->getModifiers() as $modifier) {
+    foreach ($this->section->getModifiers() as $modifier) {
       $modifiers[] = $modifier->getName();
     }
 
     // Classes.
-    //$classes = $section->getClassName();
+    //$classes = $this->section->getClassName();
 
     // Template.
-    //$section->getMarkup();
-    $template = $this->open($title . '/' . $section->getMarkup());
+    //$this->section->getMarkup();
+    $template = $this->open($this->section->getMarkup());
 
     // Javascript dependency.
     // $js_filepath = $this->configs['path'] . '/' . $this->name . '/' . $this->name . '.js';
@@ -218,14 +229,16 @@ class Component {
     // }
 
     // Save for retrevial next time, set objet properties.
-    $this->save(array(
+    $data = array(
       'title' => $title ?: '',
       'template' => $template ?: '',
       'variables' => $variables,
       'modifiers' => $modifiers,
       //'classes' => $classes,
       //'js' => $js,
-    ));
+    );
+    $this->save($data);
+    $this->set($data);
 
     return TRUE;
   }
@@ -241,7 +254,7 @@ class Component {
     $filename = str_replace('hbs', 'json', $markupFile);
 
     // Open the JSON file (assignment test).
-    if ($data = $this->open($title . '/' . $filename)) {
+    if ($data = $this->open($filename)) {
       $jsonData = json_decode($data, TRUE);
       $first = current($jsonData);
       // Allow multi-value JSON variable declaration.
@@ -263,7 +276,7 @@ class Component {
    *   File contents with line breaks;
    */
   private function open($filename) {
-    $filepath = $this->configs['path'] . '/'. $filename;
+    $filepath = $this->section->getFilePath() . '/'. $filename;
     if (file_exists($filepath)) {
       return file_get_contents($filepath);
     }
@@ -293,8 +306,6 @@ class Component {
         cache_set('componentize_' . $this->namespace, $data);
         break;
     }
-
-    $this->set($data);
   }
 
 

@@ -4,12 +4,6 @@
     "scan/kss-php": "1.0.0"
   },
   "minimum-stability": "dev",
-  "repositories": [
-    {
-      "type": "vcs",
-      "url": "git@github.com:zordius/lightncandy.git"
-    }
-  ],
   "autoload": {
     "psr-4": {"Componentize\\": "lib/"}
   }
