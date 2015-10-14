@@ -28,6 +28,6 @@ Keep a clean front-end structure and make Drupal aware with convenient developer
 1. Install Drupal module (and any sub-modules) via Drush or admin UI.
 1. Visit the admin page (`admin/structure/componentize`), alter include paths if desired and choose cache aggresiveness for tracking component data.  Save settings once to generate components from your style guide components if you are using caching.
 
-### Easy [admin use](https://github.com/tableau-mkt/componentize/wiki/Admin-Use)
+### Easy [admin use[(https://github.com/tableau-mkt/componentize/wiki/Admin-Use)
 
 ### Check out the [Component APIs](https://github.com/tableau-mkt/componentize/wiki/Component-APIs)

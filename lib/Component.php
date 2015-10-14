@@ -247,6 +247,9 @@ class Component {
   /**
    * Discover component data variables.
    *
+   * @todo Need to sanely handle various JSON structure,
+   *       without too much config burdern. (See table-list.json)
+   *
    * @return array
    */
   private function findVariables($title, $markupFile) {
@@ -258,7 +261,7 @@ class Component {
       $jsonData = json_decode($data, TRUE);
       $first = current($jsonData);
       // Allow multi-value JSON variable declaration.
-      if (gettype($first) === 'array') {
+      if (gettype($first) === 'array' && key($first) === 0) {
         $jsonData = $first[0];
       }
       $vars = array_keys($jsonData) ?: array();
