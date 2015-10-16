@@ -3,4 +3,5 @@ description = Render field content through a component.
 core = 7.x
 dependencies[] = componentize
 dependencies[] = ctools
+dependencies[] = bulk_export
 dependencies[] = field_formatter_settings

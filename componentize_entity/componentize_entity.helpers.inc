@@ -3,6 +3,7 @@
  * @file Helper functions: Componentize! Fields.
  */
 
+require(drupal_get_path('module', 'ctools') . '/includes/export.inc');
 
 /**
  * List available field types for variables.
@@ -62,6 +63,7 @@ function _componentize_entity_ui_create_vertical_tabs(&$form) {
       '#theme_wrappers' => array('vertical_tabs'),
       '#prefix' => '<div>',
       '#suffix' => '</div>',
+      '#tree' => TRUE,
     );
     $form['#attached']['js'][] = 'misc/form.js';
     $form['#attached']['js'][] = 'misc/collapse.js';

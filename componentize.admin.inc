@@ -7,28 +7,37 @@
  * Settings admin configs.
  */
 function componentize_settings() {
+  $css_default = COMPONENTIZE_COMPILED_ASSETS . '/' . COMPONENTIZE_COMPILED_CSS;
+  $js_default = COMPONENTIZE_COMPILED_ASSETS . '/' . COMPONENTIZE_COMPILED_JS;
+
   $form = array(
     '#prefix' => t('Saving this form will re-scan and regenerate stored component records.'),
 
     'componentize_directory' => array(
       '#type' => 'textfield',
       '#title' => 'Directory',
-      '#description' => t('Folder location of site components (default: !folder).',
-        array('!folder' => COMPONENTIZE_DIRECTORY
-      )),
+      '#description' => t('Folder location of site components. Default: !folder',
+        array('!folder' => '<code>' . COMPONENTIZE_DIRECTORY . '</code>')
+      ),
       '#default_value' => variable_get('componentize_directory', COMPONENTIZE_DIRECTORY),
     ),
 
-    'componentize_assets' => array(
+    'componentize_css' => array(
       '#type' => 'textfield',
-      '#title' => 'Compiled assets directory',
-      '#description' => t('Folder location of compiled site components CSS and javascript (default: !folder).', array(
-          '!folder' => COMPONENTIZE_COMPILED_ASSETS)
-        ) . '<br>' . t('Filenames should be: !css and !js', array(
-          '!css' => '<code>' . COMPONENTIZE_COMPILED_CSS . '</code>',
-          '!js' => '<code>' . COMPONENTIZE_COMPILED_JS . '</code>'
+      '#title' => 'Compiled CSS',
+      '#description' => t('Location of compiled CSS. Default: !filepath', array(
+        '!filepath' => '<code>' . $css_default . '</code>'
       )),
-      '#default_value' => variable_get('componentize_assets', COMPONENTIZE_COMPILED_ASSETS),
+      '#default_value' => variable_get('componentize_css', $css_default),
+    ),
+
+    'componentize_js' => array(
+      '#type' => 'textfield',
+      '#title' => 'Compiled JS',
+      '#description' => t('Location of compiled JS. Default: !filepath', array(
+        '!filepath' => '<code>' . $js_default . '</code>'
+      )),
+      '#default_value' => variable_get('componentize_js', $js_default),
     ),
 
     'componentize_storage' => array(

@@ -60,19 +60,19 @@ function componentize_permission() {
  * Implments hook_preprocess_page().
  */
 function componentize_preprocess_page(&$variables) {
-  $assets_dir = variable_get('componentize_assets', COMPONENTIZE_COMPILED_ASSETS);
-
-  // Javascript.
-  if (file_exists($assets_dir . '/' . COMPONENTIZE_COMPILED_JS)) {
-    drupal_add_js($assets_dir . '/' . COMPONENTIZE_COMPILED_JS);
+  // Compiled style sheet inclusion.
+  $css = variable_get('componentize_css', COMPONENTIZE_COMPILED_ASSETS . '/' . COMPONENTIZE_COMPILED_CSS);
+  if (file_exists($css)) {
+    drupal_add_css($css);
   }
   else {
     drupal_set_message(t('Unable to find and include compiled Components javascript.'), 'warning');
   }
 
-  // CSS.
-  if (file_exists($assets_dir . '/' . COMPONENTIZE_COMPILED_CSS)) {
-    drupal_add_css($assets_dir . '/' . COMPONENTIZE_COMPILED_CSS);
+  // Compiled javascript inclusion.
+  $js = variable_get('componentize_js', COMPONENTIZE_COMPILED_ASSETS . '/' . COMPONENTIZE_COMPILED_JS);
+  if (file_exists($js)) {
+    drupal_add_js($js);
   }
   else {
     drupal_set_message(t('Unable to find and include compiled Components styles.'), 'warning');
@@ -209,8 +209,10 @@ function componentize_single_modifier_validate($element, &$form_state, $form) {
   $vals = $form_state['values'];
 
   // Reduce modifier array value to string (multiple inputs) for chosen component.
-  if (isset($vals['additional_settings']) && gettype($vals['additional_settings']['component_modifier']) === 'array') {
+  if (isset($vals['additional_settings']) && gettype($vals['additional_settings']['component_modifier']) === 'array' &&
+      !empty($vals['additional_settings']['component'])) {
     $settings = $vals['additional_settings'];
+
     $form_state['values']['additional_settings']['component_modifier'] = $settings['component_modifier'][$settings['component']];
   }
 }
