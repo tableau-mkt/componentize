@@ -22,7 +22,10 @@ class ComponentFieldImage extends ComponentFieldFile {
       'title',
       'width',
       'height'
-    ));
+    )) + array(
+      'url' => file_create_url($item['uri']),
+    );
+
   }
 
 }
