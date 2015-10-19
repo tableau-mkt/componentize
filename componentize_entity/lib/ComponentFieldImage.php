@@ -1,6 +1,6 @@
 <?php
 /**
- * @file Field handler: image
+ * @file Field handler: image.
  */
 
 namespace Componentize;
@@ -17,12 +17,12 @@ class ComponentFieldImage extends ComponentFieldFile {
    *   Variable data to send to template.
    */
   public function getValues($item) {
-    return array(
-      'alt' => $item['alt'],
-      'title' => $item['title'],
-      'width' => $item['width'],
-      'height' => $item['height'],
-    );
+    return $this->collectProperties($item, array(
+      'alt',
+      'title',
+      'width',
+      'height'
+    ));
   }
 
 }

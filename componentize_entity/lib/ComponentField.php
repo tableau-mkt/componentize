@@ -1,6 +1,6 @@
 <?php
 /**
- * @file Field handler: default text.
+ * @file Field handler: default.
  */
 
 namespace Componentize;
@@ -22,6 +22,22 @@ class ComponentField {
   }
 
   /**
+   * Carefullly collect all data from field.
+   *
+   * @param array $item
+   * @param array $fields
+   *
+   * @return array
+   */
+  protected function collectProperties($item, $fields) {
+    $returns = array();
+    foreach ($fields as $field) {
+      $returns[$field] = isset($item[$field]) ? $item[$field] : '';
+    }
+    return $returns;
+  }
+
+  /**
    * Plugable: obtain variables from field value(s).  Allows more complex fields.
    *
    * @param array $item
@@ -31,7 +47,7 @@ class ComponentField {
    *   Variable data to send to template.
    */
   public function getValues($item) {
-    return $item['safe_value'];
+    return $item;
   }
 
 }

@@ -10,7 +10,7 @@ require(drupal_get_path('module', 'ctools') . '/includes/export.inc');
  *
  * @return array
  */
-function componentize_entity_types() {
+function componentize_entity_field_types() {
   $handlers = &drupal_static(__FUNCTION__);
 
   if (!$handlers) {
@@ -127,6 +127,10 @@ function _componentize_entity_get_view_mode_display_settings($entity_type, $bund
 
 /**
  * Get relevant field data in display mode for rendering component.
+ *
+ * @todo Get fieldgroups!
+ * @todo Get fieldgroups rendered as entities.
+ * @todo Allow fields a components.
  *
  * @param array $build
  *

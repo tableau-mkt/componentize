@@ -1,6 +1,6 @@
 <?php
 /**
- * @file Field handler: date
+ * @file Field handler: date.
  */
 
 namespace Componentize;
@@ -17,10 +17,10 @@ class ComponentFieldDate extends ComponentField {
    *   Variable data to send to template.
    */
   public function getValues($item) {
-    return array(
-      'timezone' => $item['timezone'],
-      'value' => $item['value'],
-    );
+    return $this->collectProperties($item, array(
+      'value',
+      'timezone'
+    ));
   }
 
 }

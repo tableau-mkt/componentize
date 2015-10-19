@@ -1,25 +1,24 @@
 <?php
 /**
- * @file Field handler: number.
+ * @file Field handler: text.
  */
 
 namespace Componentize;
 
-class ComponentFieldNumber extends ComponentField {
+class ComponentFieldText extends ComponentField {
 
   /**
-   * Variables from field value(s): number.
+   * Plugable: obtain variables from field value(s).  Allows more complex fields.
    *
    * @param array $item
    *   Field value array.
    *
-   * @return array
+   * @return string|array
    *   Variable data to send to template.
    */
   public function getValues($item) {
     return $this->collectProperties($item, array(
-      'prefix',
-      'value'
+      'safe_value'
     ));
   }
 
