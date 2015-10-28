@@ -1,6 +1,6 @@
 <?php
 /**
- * @file Field handler: file
+ * @file Field handler: file.
  */
 
 namespace Componentize;
@@ -17,13 +17,14 @@ class ComponentFieldFile extends ComponentField {
    *   Variable data to send to template.
    */
   public function getValues($item) {
-    return array(
-      'uri' => $item['uri'],
+    return $this->collectProperties($item, array(
+      'uri',
+      'filename',
+      'filesize',
+      'mimetype',
+      'description'
+    )) + array(
       'url' => file_create_url($item['uri']),
-      'filename' => $item['filename'],
-      'filesize' => $item['filesize'],
-      'mimetype' => $item['filemime'],
-      'description' => $item['description'],
     );
   }
 }

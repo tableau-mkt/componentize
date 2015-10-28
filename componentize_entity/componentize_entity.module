@@ -6,7 +6,7 @@
 use Componentize\ComponentFactory;
 use Componentize\ComponentField;
 
-include(__DIR__ . '/componentize_entity.helpers.inc');
+require_once __DIR__ . '/componentize_entity.helpers.inc';
 
 
 /**
@@ -35,9 +35,10 @@ function componentize_entity_export_evm_component($context) {
  */
 function componentize_entity_componentize_field_types_info() {
   return array(
-    'text' =>               'Componentize\\ComponentField',
-    'text_long' =>          'Componentize\\ComponentField',
-    'text_with_summary' =>  'Componentize\\ComponentField',
+    'default' =>            'Componentize\\ComponentField',
+    'text' =>               'Componentize\\ComponentFieldText',
+    'text_long' =>          'Componentize\\ComponentFieldText',
+    'text_with_summary' =>  'Componentize\\ComponentFieldText',
     'number_integer' =>     'Componentize\\ComponentFieldNumber',
     'number_decimal' =>     'Componentize\\ComponentFieldNumber',
     'number_unformatted' => 'Componentize\\ComponentFieldNumber',
@@ -136,7 +137,7 @@ function componentize_entity_entity_view_mode_save($form, &$form_state) {
  * Add custom settings for field types within view modes.
  */
 function componentize_entity_field_formatter_info_alter(&$info) {
-  $types = array_keys(componentize_entity_types());
+  $types = array_keys(componentize_entity_field_types());
   foreach ($info as $format => $formatter) {
     // Field type is registered.
     if (array_intersect($formatter['field types'], $types)) {
@@ -230,7 +231,7 @@ function componentize_entity_field_formatter_settings_summary_alter(&$summary, $
   $hidden = ($field_display_mode['type'] === 'hidden');
 
   // We know about this type of field.
-  if (!$hidden && in_array($context['field']['type'], array_keys(componentize_entity_types()))) {
+  if (!$hidden && in_array($context['field']['type'], array_keys(componentize_entity_field_types()))) {
 
     $view_mode_settings = _componentize_entity_get_view_mode_display_settings(
       $context['instance']['entity_type'], $context['instance']['bundle'], $context['view_mode']
@@ -374,8 +375,8 @@ function componentize_entity_render_field($field_name, $entity_type, $entity, $i
 
   // Use component field handler. See: componentize_entity.api.php
   if ($settings && isset($settings['componentize_entity_via_handler'])) {
-    $fields_types = componentize_entity_types();
-    $class_name = isset($fields_types[$type]) ? $fields_types[$type] : COMPONENTIZE_DEFAULT_FIELD_HANDLER;
+    $fields_types = componentize_entity_field_types();
+    $class_name = isset($fields_types[$type]) ? $fields_types[$type] : $fields_types['default'];
 
     // Load class.
     if (class_exists($class_name)) {

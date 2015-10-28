@@ -1,6 +1,6 @@
 <?php
 /**
- * @file Field handler: link
+ * @file Field handler: link.
  */
 
 namespace Componentize;
@@ -17,11 +17,8 @@ class ComponentFieldLink extends ComponentField {
    *   Variable data to send to template.
    */
   public function getValues($item) {
-    return array(
-      'url' => $item['url'],
-      'title' => $item['title'],
-      'attributes' => $item['attributes'],
-    );
+    $item['href'] = $item['display_url'];
+    return $item;
   }
 
 }

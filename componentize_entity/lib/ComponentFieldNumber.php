@@ -1,6 +1,6 @@
 <?php
 /**
- * @file Field handler: number
+ * @file Field handler: number.
  */
 
 namespace Componentize;
@@ -17,10 +17,7 @@ class ComponentFieldNumber extends ComponentField {
    *   Variable data to send to template.
    */
   public function getValues($item) {
-    return array(
-      'prefix' => $item['prefix'],
-      'value' => $item['value'],
-    );
+    return $item['value'];
   }
 
 }

@@ -1,25 +1,24 @@
 <?php
 /**
- * @file Field handler: date.
+ * @file Field handler: text.
  */
 
 namespace Componentize;
 
-class ComponentFieldDate extends ComponentField {
+class ComponentFieldText extends ComponentField {
 
   /**
-   * Variables from field value(s): file.
+   * Plugable: obtain variables from field value(s).  Allows more complex fields.
    *
    * @param array $item
    *   Field value array.
    *
-   * @return array
+   * @return string|array
    *   Variable data to send to template.
    */
   public function getValues($item) {
     return $this->collectProperties($item, array(
-      'value',
-      'timezone'
+      'safe_value'
     ));
   }
 
