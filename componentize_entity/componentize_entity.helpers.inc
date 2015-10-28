@@ -3,7 +3,7 @@
  * @file Helper functions: Componentize! Fields.
  */
 
-require(drupal_get_path('module', 'ctools') . '/includes/export.inc');
+require_once drupal_get_path('module', 'ctools') . '/includes/export.inc';
 
 /**
  * List available field types for variables.

@@ -17,11 +17,8 @@ class ComponentFieldLink extends ComponentField {
    *   Variable data to send to template.
    */
   public function getValues($item) {
-    return $this->collectProperties($item, array(
-      'url',
-      'title',
-      'attributes'
-    ));
+    $item['href'] = $item['display_url'];
+    return $item;
   }
 
 }

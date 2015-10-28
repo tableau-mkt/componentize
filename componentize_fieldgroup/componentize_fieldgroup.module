@@ -107,7 +107,7 @@ function _componentize_fieldgroup_check_group_settings($context) {
   $field = $context['field'];
 
   // We know about this type of field.
-  if (!$hidden && in_array($field['type'], array_keys(componentize_entity_types()))) {
+  if (!$hidden && in_array($field['type'], array_keys(componentize_entity_field_types()))) {
     // Check relevant groups.
     $groups = field_group_info_groups(
       $context['instance']['entity_type'], $context['instance']['bundle'], $context['view_mode']

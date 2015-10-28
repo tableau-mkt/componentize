@@ -6,7 +6,7 @@
 use Componentize\ComponentFactory;
 use Componentize\ComponentField;
 
-include(__DIR__ . '/componentize_entity.helpers.inc');
+require_once __DIR__ . '/componentize_entity.helpers.inc';
 
 
 /**

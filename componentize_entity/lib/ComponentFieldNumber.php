@@ -17,10 +17,7 @@ class ComponentFieldNumber extends ComponentField {
    *   Variable data to send to template.
    */
   public function getValues($item) {
-    return $this->collectProperties($item, array(
-      'prefix',
-      'value'
-    ));
+    return $item['value'];
   }
 
 }
