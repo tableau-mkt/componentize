@@ -368,13 +368,16 @@ function theme_entity_view_mode_component($variables) {
  *
  * @return string|array
  */
-function componentize_entity_render_field($field_name, $entity_type, $entity, $items, $settings = NULL) {
-  $field_info   = field_info_field($field_name);
-  $type         = $field_info['type'];
-  $handler      = FALSE;
+function componentize_entity_render_field($field_name, $entity_type, $entity, $view_mode, $items, $settings = NULL) {
+  $field_info     = field_info_field($field_name);
+  //$entity_info    = entity_get_info($entity_type);
+  //$bundle         = $entity->{$entity_info['entity keys']['bundle']};
+  //$field_settings = field_info_instance($entity_type, $field_name, $bundle);
+  $type           = $field_info['type'];
+  $handler        = FALSE;
 
   // Use component field handler. See: componentize_entity.api.php
-  if ($settings && isset($settings['componentize_entity_via_handler'])) {
+  if ($settings && isset($settings['componentize_entity_via_handler']) && $settings['componentize_entity_via_handler'] !== 0) {
     $fields_types = componentize_entity_field_types();
     $class_name = isset($fields_types[$type]) ? $fields_types[$type] : $fields_types['default'];
 
@@ -397,8 +400,8 @@ function componentize_entity_render_field($field_name, $entity_type, $entity, $i
         $output[] = $handler->getValues($item);
       }
       else {
-        $field_value = field_view_value($entity_type, $entity, $field_name, $item);
-        $output[] = $field_value['#markup'];
+        $renderer = field_view_value($entity_type, $entity, $field_name, $item, $view_mode);
+        $output[] = render($renderer);
       }
     }
   }
@@ -408,8 +411,8 @@ function componentize_entity_render_field($field_name, $entity_type, $entity, $i
       $output = $handler->getValues($items[0]);
     }
     else {
-      $field_value = field_view_value($entity_type, $entity, $field_name, $items[0]);
-      $output = $field_value['#markup'];
+      $renderer = field_view_value($entity_type, $entity, $field_name, $items[0], $view_mode);
+      $output = render($renderer);
     }
   }
 
