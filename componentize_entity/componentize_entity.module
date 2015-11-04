@@ -229,10 +229,11 @@ function componentize_entity_field_formatter_settings_form_alter(&$settings_form
 function componentize_entity_field_formatter_settings_summary_alter(&$summary, $context) {
   $field_display_mode = $context['instance']['display'][$context['view_mode']];
   $hidden = ($field_display_mode['type'] === 'hidden');
+  $within_types = (isset($context['field']['type']) &&
+      in_array($context['field']['type'], array_keys(componentize_entity_field_types())));
 
   // We know about this type of field.
-  if (!$hidden && in_array($context['field']['type'], array_keys(componentize_entity_field_types()))) {
-
+  if (!$hidden && $within_types) {
     $view_mode_settings = _componentize_entity_get_view_mode_display_settings(
       $context['instance']['entity_type'], $context['instance']['bundle'], $context['view_mode']
     );
