@@ -51,18 +51,6 @@ function hook_componentize_list_alter(&$list, $shallow) {
 
 
 /**
- * Alter componentize entity data before it's used.
- *
- * @param array $vars
- *   Entity related properties, field data.
- */
-function hook_componentize_entity_data_alter(&$vars) {
-  // Example: format a UNIX timestamp.
-  $vars['entity_changed'] = format_date($vars['entity_changed']);
-}
-
-
-/**
  * Alter data passed to the template.
  *
  * @param Component $component

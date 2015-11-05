@@ -169,6 +169,9 @@ function _componentize_entity_get_fields($build) {
 
   // Prefix each property name (namespaced) for avoiding collisions.
   foreach ($copy_props as $name) {
+    if (!isset($entity->{$name})) {
+      continue;
+    }
     $vars['entity_' . $name] = $entity->{$name};
   }
 
@@ -190,7 +193,7 @@ function _componentize_entity_get_fields($build) {
   }
 
   // Allow modules to alter data with hook_componentize_entity_data_alter().
-  drupal_alter('componentize_entity_data', $vars);
+  drupal_alter('componentize_entity_data', $vars, $entity);
 
   return $vars;
 }
