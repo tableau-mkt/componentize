@@ -18,6 +18,7 @@ function componentize_entity_schema() {
       'identifier' => 'entity_view_mode_component',
       //'default hook' => 'default_componentize_entity',
       'export callback' => 'componentize_entity_export_evm_component',
+      'save callback' => 'componentize_entity_save_evm_component',
       'api' => array(
         'owner' => 'componentize_entity',
         'api' => 'entity_view_mode_component',

@@ -227,4 +227,7 @@ function componentize_single_modifier_validate($element, &$form_state, $form) {
 
     $form_state['values']['additional_settings']['component_modifier'] = $settings['component_modifier'][$settings['component']];
   }
+  else {
+    $form_state['values']['additional_settings']['component_modifier'] = '';
+  }
 }

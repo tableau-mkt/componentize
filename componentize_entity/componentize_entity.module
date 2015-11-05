@@ -24,7 +24,26 @@ function componentize_entity_ctools_plugin_api($owner, $api) {
  * Export callback for exportable settings schema via ctools.
  */
 function componentize_entity_export_evm_component($context) {
-  return ctools_export_object('entity_view_mode_component', $context);
+  return ctools_export_object('componentize_entity_entity_view_mode', $context);
+}
+
+
+/**
+ * Save callback for componentized entity exportables.
+ */
+function componentize_entity_save_evm_component($object) {
+  if ($object->export_type & EXPORT_IN_DATABASE) {
+    // Existing record.
+    $update = array('id');
+  }
+  else {
+    // New record.
+    $update = array();
+    $object->export_type = EXPORT_IN_DATABASE;
+  }
+  $return = drupal_write_record('componentize_entity_entity_view_mode', $object, $update);
+
+  return $return;
 }
 
 
@@ -96,10 +115,19 @@ function componentize_entity_form_field_ui_display_overview_form_alter(&$form, &
  */
 function componentize_entity_entity_view_mode_save($form, &$form_state) {
   $settings = $form_state['values']['additional_settings'];
+  $id = $form['#entity_type'] . '|' . $form['#bundle'] . '|' . $form['#view_mode'];
+
+  // Remove empty settings.
+  if (!$settings['component']) {
+    db_delete('componentize_entity_entity_view_mode')
+      ->condition('id', $id)
+      ->execute();
+    return;
+  }
 
   // Build record to save from meta data and settings.
   $record = (object) array(
-    'id' => $form['#entity_type'] . '|' . $form['#bundle'] . '|' . $form['#view_mode'],
+    'id' => $id,
     'entity_type' => $form['#entity_type'],
     'bundle' => $form['#bundle'],
     'view_mode' => $form['#view_mode'],
@@ -113,16 +141,11 @@ function componentize_entity_entity_view_mode_save($form, &$form_state) {
   drupal_alter('entity_view_mode_component_save', $record, $form_state);
 
   // Store the record.
+  // Include primary for new records.
+  $update = !$form['additional_settings']['componentize']['#new'] ? array('id') : array();
+
   // NOTE: Return value is mostly useless, fails silently.
-  if ($form['additional_settings']['componentize']['#new']) {
-    // Include primary for new records.
-    drupal_write_record('componentize_entity_entity_view_mode', $record);
-  }
-  else {
-    drupal_write_record('componentize_entity_entity_view_mode', $record, array(
-      'entity_type', 'bundle', 'view_mode'
-    ));
-  }
+  drupal_write_record('componentize_entity_entity_view_mode', $record, $update);
 
   // Clear entity info cache.
   cache_clear_all('entity_info', 'cache', TRUE);
