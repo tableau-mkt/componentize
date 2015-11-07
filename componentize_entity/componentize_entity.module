@@ -163,7 +163,7 @@ function componentize_entity_field_formatter_info_alter(&$info) {
   $types = array_keys(componentize_entity_field_types());
   foreach ($info as $format => $formatter) {
     // Field type is registered.
-    if (array_intersect($formatter['field types'], $types)) {
+    if (array_intersect($formatter['field types'], $types) && gettype($info[$format]['settings']) === 'array') {
       $info[$format]['settings'] += array(
         'componentize_entity_variable_name' => '',
         'componentize_entity_via_handler' => '',
