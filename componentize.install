@@ -7,6 +7,15 @@
  * Implements hook_uninstall.
  */
 function componentize_unistall() {
+  // Remove admin configurations.
+  global $conf;
+  foreach($conf as $key => $value) {
+    if (0 === strpos($key, 'componentize_')) {
+      variable_del($conf[$key]);
+    }
+  }
+
+  // Remove component variables.
   foreach (array(
       'components_directory',
       'components_list',
@@ -15,8 +24,7 @@ function componentize_unistall() {
     ) as $var) {
     variable_del($var);
   }
-
-  // Delete all stored component variables, if any.
+  // Delete all stored components.
   foreach (componentize_list() as $component) {
     $component->delete();
   }

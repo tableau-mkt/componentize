@@ -284,9 +284,12 @@ class Component {
       return file_get_contents($filepath);
     }
     else {
-      drupal_set_message(t(
-        'Component file missing: @file', array('@file' => $filepath)
-      ), 'warning');
+      if (!variable_get('componentize_supress_messages', FALSE) ||
+          strpos(request_path(), 'admin/structure/componentize/') === 0) {
+        drupal_set_message(t(
+          'Component file missing: @file', array('@file' => $filepath)
+        ), 'warning');
+      }
       return FALSE;
     }
   }

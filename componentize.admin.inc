@@ -51,6 +51,13 @@ function componentize_settings() {
       '#description' => t('Avoid regenerating with less aggresive caching. Data will be stored in either: variables, cache or regenerated on every page load.'),
       '#default_value' => variable_get('componentize_storage', 'none'),
     ),
+
+    'componentize_supress_messages' => array(
+      '#type' => 'checkbox',
+      '#title' => 'Supress messages',
+      '#description' => t('Avoid showing missing component file messages everywhere but componentize admin pages.'),
+      '#default_value' => variable_get('componentize_supress_messages', FALSE),
+    ),
   );
 
   $form['#submit'][] = 'componentize_regenerate';
