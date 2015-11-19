@@ -22,6 +22,15 @@ function componentize_settings() {
       '#default_value' => variable_get('componentize_directory', COMPONENTIZE_DIRECTORY),
     ),
 
+    'componentize_partials' => array(
+      '#type' => 'textfield',
+      '#title' => 'Partials directory',
+      '#description' => t('Folder location of component partials. Default: !folder',
+        array('!folder' => '<code>' . COMPONENTIZE_PARTIALS . '</code>')
+      ),
+      '#default_value' => variable_get('componentize_partials', COMPONENTIZE_PARTIALS),
+    ),
+
     'componentize_css' => array(
       '#type' => 'textfield',
       '#title' => 'Compiled CSS',
