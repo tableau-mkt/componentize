@@ -144,6 +144,37 @@ function _componentize_entity_get_fields($build) {
   $entity = isset($build['#entity']) ? $build['#entity'] : $build['#' . $entity_type];
   $vars = array();
 
+  // Copy a bunch of entity properties into our $vars array.
+  $copy_props = array(
+    'type',
+    'nid',
+    'tnid',
+    'title',
+    'status',
+    'promote',
+    'sticky',
+    'language',
+    'translate',
+    'changed',
+    'comment_count',
+    'created',
+    'last_comment_timestamp',
+    'last_comment_uid',
+    'name',
+    'metatags',
+    'path',
+    'revision_timestamp',
+    'revision_uid',
+  );
+
+  // Prefix each property name (namespaced) for avoiding collisions.
+  foreach ($copy_props as $name) {
+    if (!isset($entity->{$name})) {
+      continue;
+    }
+    $vars['entity_' . $name] = $entity->{$name};
+  }
+
   foreach ($fields as $name => $field) {
     $settings = _componentize_entity_get_field_settings($field, $view_mode);
 
@@ -160,6 +191,9 @@ function _componentize_entity_get_fields($build) {
       );
     }
   }
+
+  // Allow modules to alter data with hook_componentize_entity_data_alter().
+  drupal_alter('componentize_entity_data', $vars, $entity);
 
   return $vars;
 }

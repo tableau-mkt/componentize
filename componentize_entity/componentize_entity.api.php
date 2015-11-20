@@ -73,3 +73,17 @@ class ComponentFieldMyType extends ComponentField {
     );
   }
 }
+
+
+/**
+ * Alter componentize entity data before it's used.
+ *
+ * @param array $vars
+ *   Entity related properties, field data.
+ * @param object $entity
+ *   The entity object
+ */
+function hook_componentize_entity_data_alter(&$vars, &$entity) {
+  // Example: format a UNIX timestamp.
+  $vars['entity_changed'] = format_date($vars['entity_changed']);
+}
