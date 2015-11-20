@@ -187,7 +187,7 @@ function _componentize_entity_get_fields($build) {
       $template_var = $settings['componentize_entity_variable_name'];
       $vars[$template_var . '_label'] = $field['label'];
       $vars[$template_var] = componentize_entity_render_field(
-        $name, $entity_type, $entity, $items, $settings
+        $name, $entity_type, $entity, $view_mode, $items, $settings
       );
     }
   }
