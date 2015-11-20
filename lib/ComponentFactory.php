@@ -29,6 +29,7 @@ class ComponentFactory {
     // Honor passed, provide a default.
     $configs = $configs + array(
       'path' => variable_get('componentize_directory', COMPONENTIZE_DIRECTORY),
+      'partials' => variable_get('componentize_partials', COMPONENTIZE_PARTIALS),
       'storage' => variable_get('componentize_storage', 1),
       'module' => 'componentize',
       'reset' => FALSE,

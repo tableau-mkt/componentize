@@ -72,7 +72,13 @@ class Component {
     $filepath = $this->template_dir . '/' . $this->namespace . '.php';
     if (!file_exists($filepath) || $this->configs['storage'] === 'none' || $this->configs['reset']) {
       $handlebar = new LightnCandy();
-      $compiled = $handlebar->compile($this->template, array('flags' => LightnCandy::FLAG_WITH));
+      $compiled = $handlebar->compile($this->template, array(
+        'flags' => LightnCandy::FLAG_HANDLEBARS + LightnCandy::FLAG_RUNTIMEPARTIAL,
+        'basedir' => array($this->configs['partials']),
+        'fileext' => array(
+          '.hbs',
+        ),
+      ));
       file_unmanaged_save_data($compiled, $filepath, FILE_EXISTS_REPLACE);
     }
     $renderer = include($filepath);
