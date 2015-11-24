@@ -167,14 +167,15 @@ function _componentize_entity_get_fields($build) {
     'revision_uid',
   );
 
-  // Prefix each property name (namespaced) for avoiding collisions.
+  // Add default entity properties.
   foreach ($copy_props as $name) {
     if (!isset($entity->{$name})) {
       continue;
     }
-    $vars['entity_' . $name] = $entity->{$name};
+    $vars[$name] = $entity->{$name};
   }
 
+  // Add mapped fields.
   foreach ($fields as $name => $field) {
     $settings = _componentize_entity_get_field_settings($field, $view_mode);
 
