@@ -81,9 +81,10 @@ function componentize_fieldgroup_field_formatter_settings_form_alter(&$settings_
     //$parent_group = $context['form_state']['input']['fields'][$field_name]['parent'];
     //$group_settings = $context['form_state']['field_group'][$parent_group]->format_settings['instance_settings'];
     $group_settings = _componentize_fieldgroup_check_group_settings($context);
+    $field_display_mode = $context['instance']['display'][$context['view_mode']];
 
     // Use configured compontent.
-    if (isset($group_settings['component'])) {
+    if (!empty($group_settings['component'])) {
       $component = ComponentFactory::create($group_settings['component']);
       // Choose variables.
       _componentize_entity_generate_variable_form(
@@ -150,7 +151,7 @@ function _componentize_fieldgroup_get_fields($element, $group) {
         $template_var = $settings['componentize_entity_variable_name'];
         $vars[$template_var . '_label'] = $element[$name]['#title'];
         $vars[$template_var] = componentize_entity_render_field(
-          $name, $group->entity_type, $entity, $element[$name]['#items'], $settings
+          $name, $group->entity_type, $entity, $settings, $element[$name]['#items']
         );
       }
     }
