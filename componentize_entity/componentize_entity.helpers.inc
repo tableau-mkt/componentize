@@ -91,7 +91,6 @@ function _componentize_entity_ui_create_vertical_tabs(&$form) {
  */
 function _componentize_entity_get_view_mode_display_settings($entity_type, $bundle, $view_mode) {
   $export_id  = implode('|', array($entity_type, $bundle, $view_mode));
-  $default_id = implode('|', array($entity_type, $bundle, 'default'));
 
   $settings = &drupal_static(__FUNCTION__);
   if (!$settings) {
@@ -101,9 +100,6 @@ function _componentize_entity_get_view_mode_display_settings($entity_type, $bund
 
   if (isset($settings[$export_id])) {
     return $settings[$export_id];
-  }
-  else if (isset($settings[$default_id])) {
-    return $settings[$default_id];
   }
 
   return FALSE;

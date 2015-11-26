@@ -83,6 +83,14 @@ class Component {
     }
     $renderer = include($filepath);
 
+    // Exit if the render function is invalid.
+    if (gettype($renderer) !== 'object') {
+      drupal_set_message(t(
+        'Problem parsing template, unable to render via component.'
+      ), 'error');
+      return FALSE;
+    }
+
     // Allow external access.
     drupal_alter('componentize_render', $this, $data);
 

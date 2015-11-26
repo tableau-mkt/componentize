@@ -142,7 +142,7 @@ function componentize_entity_entity_view_mode_save($form, &$form_state) {
 
   // Store the record.
   // Include primary for new records.
-  $update = !$form['additional_settings']['componentize']['#new'] ? array('id') : array();
+  $update = !$form['additional_settings']['componentize']['#new'] ? 'id' : array();
 
   // NOTE: Return value is mostly useless, fails silently.
   drupal_write_record('componentize_entity_entity_view_mode', $record, $update);
@@ -337,8 +337,9 @@ function _componentize_entity_generate_summary(&$summary, $field_settings) {
  */
 function componentize_entity_entity_view_alter(&$build, $type) {
   // View mode settings for the component.
+  $view_mode = $build['#view_mode'] ?: 'default';
   $settings = _componentize_entity_get_view_mode_display_settings(
-    $build['#entity_type'], $build['#bundle'], $build['#view_mode']
+    $build['#entity_type'], $build['#bundle'], $view_mode
   );
 
   // Check for a configured component.
