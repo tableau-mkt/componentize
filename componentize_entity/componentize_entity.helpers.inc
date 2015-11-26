@@ -142,6 +142,7 @@ function _componentize_entity_get_fields($build) {
   $fields = field_info_instances($build['#entity_type'], $build['#bundle']);
   $entity_type = $build['#entity_type'];
   $entity = isset($build['#entity']) ? $build['#entity'] : $build['#' . $entity_type];
+  $entity_uri = entity_uri($entity_type, $entity);
   $vars = array();
 
   // Copy a bunch of entity properties into our $vars array.
@@ -166,6 +167,10 @@ function _componentize_entity_get_fields($build) {
     'revision_timestamp',
     'revision_uid',
   );
+
+  // Make paths available.
+  $vars['url'] = url($entity_uri['path'], $entity_uri['options']);
+  $vars['url_absolute'] = url($entity_uri['path'], $entity_uri['options'] + array('absolute' => TRUE));
 
   // Add default entity properties.
   foreach ($copy_props as $name) {
