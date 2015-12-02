@@ -125,6 +125,23 @@ function componentize_entity_entity_view_mode_save($form, &$form_state) {
     return;
   }
 
+  // Remove existing settings for disabled view modes.
+  if (!empty($settings['modes']['view_modes_custom'])) {
+    foreach ($settings['modes']['view_modes_custom'] as $view_mode => $active) {
+      if (!$active) {
+        $id = implode('|', array($form['#entity_type'], $form['#bundle'], $view_mode));
+        $exists = db_query('select id from {componentize_entity_entity_view_mode}
+        where id = :id', array(':id' => $id))->rowCount();
+
+        if ($exists) {
+          db_delete('componentize_entity_entity_view_mode')
+            ->condition('id', $id)
+            ->execute();
+        }
+      }
+    }
+  }
+
   // Build record to save from meta data and settings.
   $record = (object) array(
     'id' => $id,
@@ -337,10 +354,17 @@ function _componentize_entity_generate_summary(&$summary, $field_settings) {
  */
 function componentize_entity_entity_view_alter(&$build, $type) {
   // View mode settings for the component.
-  $view_mode = $build['#view_mode'] ?: 'default';
+  $view_mode = $build['#view_mode'];
   $settings = _componentize_entity_get_view_mode_display_settings(
     $build['#entity_type'], $build['#bundle'], $view_mode
   );
+
+  // No "full content" specific settings were found, try "default" instead.
+  if (!$settings && $view_mode === 'full') {
+    $settings = _componentize_entity_get_view_mode_display_settings(
+      $build['#entity_type'], $build['#bundle'], 'default'
+    );
+  }
 
   // Check for a configured component.
   if (isset($settings->component) && !empty($settings->component)) {
