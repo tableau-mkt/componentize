@@ -129,13 +129,13 @@ function componentize_entity_entity_view_mode_save($form, &$form_state) {
   if (!empty($settings['modes']['view_modes_custom'])) {
     foreach ($settings['modes']['view_modes_custom'] as $view_mode => $active) {
       if (!$active) {
-        $id = implode('|', array($form['#entity_type'], $form['#bundle'], $view_mode));
+        $remove_id = implode('|', array($form['#entity_type'], $form['#bundle'], $view_mode));
         $exists = db_query('select id from {componentize_entity_entity_view_mode}
-        where id = :id', array(':id' => $id))->rowCount();
+        where id = :id', array(':id' => $remove_id))->rowCount();
 
         if ($exists) {
           db_delete('componentize_entity_entity_view_mode')
-            ->condition('id', $id)
+            ->condition('id', $remove_id)
             ->execute();
         }
       }
