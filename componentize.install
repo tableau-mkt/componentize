@@ -15,23 +15,6 @@ function componentize_unistall() {
     }
   }
 
-  // Remove component variables.
-  foreach (array(
-      'componentize_directory',
-      'componentize_partials',
-      'componentize_css',
-      'componentize_js',
-      'componentize_storage',
-      'componentize_supress_messages',
-      'componentize_exclude_paths',
-      'componentize_exclude_themes',
-      'componentize_js_group',
-      'componentize_js_weight',
-      'componentize_css_group',
-      'componentize_css_weight',
-    ) as $var) {
-    variable_del($var);
-  }
   // Delete all stored components.
   foreach (componentize_list() as $component) {
     $component->delete();

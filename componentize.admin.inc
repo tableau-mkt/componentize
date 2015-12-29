@@ -69,11 +69,32 @@ function componentize_settings() {
     ),
   );
 
-  $form['componentize_blacklist_paths'] = array(
+  $form['exclude'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Exclusions'),
+    '#collapsible' => TRUE,
+    '#collapsed' => TRUE,
+  );
+
+  // Get a list of all themes.
+  $themes = list_themes();
+  foreach ($themes as $name => $theme) {
+    $theme_options[$name] = $theme->info['name'];
+  }
+
+  $form['exclude']['componentize_exclude_themes'] = array(
+    '#type' => 'checkboxes',
+    '#title' => 'Exclude on specific themes',
+    '#description' => t('Check which themes you do not want to load components on.'),
+    '#options' => $theme_options,
+    '#default_value' => variable_get('componentize_exclude_themes', array()),
+  );
+
+  $form['exclude']['componentize_exclude_paths'] = array(
     '#type' => 'textarea',
-    '#title' => 'Blacklist URL Patterns',
-    '#description' => t('A list of URL patterns to exclude components on. Supports wildcard using *.'),
-    '#default_value' => variable_get('componentize_blacklist_paths', ''),
+    '#title' => 'Exclude on URL Patterns',
+    '#description' => t('A list of URL patterns you do not want to load components on. Separate with newline or whitespace. Supports wildcard using *.'),
+    '#default_value' => variable_get('componentize_exclude_paths', ''),
   );
 
   $form['asset_options'] = array(
