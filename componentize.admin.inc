@@ -69,6 +69,13 @@ function componentize_settings() {
     ),
   );
 
+  $form['componentize_blacklist_paths'] = array(
+    '#type' => 'textarea',
+    '#title' => 'Blacklist URL Patterns',
+    '#description' => t('A list of URL patterns to exclude components on. Supports wildcard using *.'),
+    '#default_value' => variable_get('componentize_blacklist_paths', ''),
+  );
+
   $form['asset_options'] = array(
     '#type' => 'fieldset',
     '#title' => t('CSS/JS Group/Weight Options'),
@@ -79,7 +86,7 @@ function componentize_settings() {
   $form['asset_options']['componentize_js_group'] = array(
     '#type' => 'numberfield',
     '#title' => t('JS Group'),
-    '#description' => t('JS group weight value.'),
+    '#description' => t('JS group weight value. Defaults to 100 (JS_THEME).'),
     '#default_value' => variable_get('componentize_js_group', JS_THEME),
   );
 
@@ -93,7 +100,7 @@ function componentize_settings() {
   $form['asset_options']['componentize_css_group'] = array(
     '#type' => 'numberfield',
     '#title' => t('CSS Group'),
-    '#description' => t('CSS group weight value.'),
+    '#description' => t('CSS group weight value. Defaults to 100 (CSS_THEME).'),
     '#default_value' => variable_get('componentize_css_group', CSS_THEME),
   );
 

@@ -61,8 +61,11 @@ function componentize_permission() {
  * Implements hook_preprocess_page().
  */
 function componentize_preprocess_page(&$variables) {
-  // Skip admin pages.
-  if (path_is_admin(current_path())) {
+  // Skip blacklisted paths.
+  $alias = drupal_get_path_alias();
+  $blacklisted_paths = componentize_to_array(variable_get('componentize_blacklist_paths', ''));
+  if (!empty($blacklisted_paths)
+      && drupal_match_path($alias, implode("\n", $blacklisted_paths))) {
     return;
   }
 
@@ -70,7 +73,7 @@ function componentize_preprocess_page(&$variables) {
   $css = variable_get('componentize_css', COMPONENTIZE_COMPILED_ASSETS . '/' . COMPONENTIZE_COMPILED_CSS);
   if (file_exists($css)) {
     drupal_add_css($css, array(
-      'group' => variable_get('componentize_css_group', 0),
+      'group' => variable_get('componentize_css_group', CSS_THEME),
       'weight' => variable_get('componentize_css_weight', 0),
     ));
   }
@@ -82,7 +85,7 @@ function componentize_preprocess_page(&$variables) {
   $js = variable_get('componentize_js', COMPONENTIZE_COMPILED_ASSETS . '/' . COMPONENTIZE_COMPILED_JS);
   if (file_exists($js)) {
     drupal_add_js($js, array(
-      'group' => variable_get('componentize_js_group', 0),
+      'group' => variable_get('componentize_js_group', JS_THEME),
       'weight' => variable_get('componentize_js_weight', 0),
     ));
   }
@@ -242,4 +245,17 @@ function componentize_single_modifier_validate($element, &$form_state, $form) {
   else {
     $form_state['values']['additional_settings']['component_modifier'] = '';
   }
+}
+
+
+/**
+ * Convert a given string value to an array, by splitting on comma and
+ * whitespace. No empty values will be returned.
+ *
+ * @param string $value
+ *
+ * @return array
+ */
+function componentize_to_array($value) {
+  return preg_split('/[\s,]+/', $value, NULL, PREG_SPLIT_NO_EMPTY);
 }

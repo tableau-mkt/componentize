@@ -17,10 +17,17 @@ function componentize_unistall() {
 
   // Remove component variables.
   foreach (array(
-      'components_directory',
-      'components_list',
-      'components_blocks',
-      'components_cache',
+      'componentize_directory',
+      'componentize_partials',
+      'componentize_css',
+      'componentize_js',
+      'componentize_storage',
+      'componentize_supress_messages',
+      'componentize_blacklist_paths',
+      'componentize_js_group',
+      'componentize_js_weight',
+      'componentize_css_group',
+      'componentize_css_weight',
     ) as $var) {
     variable_del($var);
   }
