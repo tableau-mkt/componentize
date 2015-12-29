@@ -15,15 +15,6 @@ function componentize_unistall() {
     }
   }
 
-  // Remove component variables.
-  foreach (array(
-      'components_directory',
-      'components_list',
-      'components_blocks',
-      'components_cache',
-    ) as $var) {
-    variable_del($var);
-  }
   // Delete all stored components.
   foreach (componentize_list() as $component) {
     $component->delete();

@@ -69,6 +69,69 @@ function componentize_settings() {
     ),
   );
 
+  $form['exclude'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Exclusions'),
+    '#collapsible' => TRUE,
+    '#collapsed' => TRUE,
+  );
+
+  // Get a list of all themes.
+  $themes = list_themes();
+  foreach ($themes as $name => $theme) {
+    $theme_options[$name] = $theme->info['name'];
+  }
+
+  $form['exclude']['componentize_exclude_themes'] = array(
+    '#type' => 'checkboxes',
+    '#title' => 'Exclude on specific themes',
+    '#description' => t('Check which themes you do not want to load components on.'),
+    '#options' => $theme_options,
+    '#default_value' => variable_get('componentize_exclude_themes', array()),
+  );
+
+  $form['exclude']['componentize_exclude_paths'] = array(
+    '#type' => 'textarea',
+    '#title' => 'Exclude on URL Patterns',
+    '#description' => t('A list of URL patterns you do not want to load components on. Separate with newline or whitespace. Supports wildcard using *.'),
+    '#default_value' => variable_get('componentize_exclude_paths', ''),
+  );
+
+  $form['asset_options'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('CSS/JS Group/Weight Options'),
+    '#collapsible' => TRUE,
+    '#collapsed' => TRUE,
+  );
+
+  $form['asset_options']['componentize_js_group'] = array(
+    '#type' => 'numberfield',
+    '#title' => t('JS Group'),
+    '#description' => t('JS group weight value. Defaults to 100 (JS_THEME).'),
+    '#default_value' => variable_get('componentize_js_group', JS_THEME),
+  );
+
+  $form['asset_options']['componentize_js_weight'] = array(
+    '#type' => 'numberfield',
+    '#title' => t('JS Weight'),
+    '#description' => t('JS weight within group value.'),
+    '#default_value' => variable_get('componentize_js_weight', 0),
+  );
+
+  $form['asset_options']['componentize_css_group'] = array(
+    '#type' => 'numberfield',
+    '#title' => t('CSS Group'),
+    '#description' => t('CSS group weight value. Defaults to 100 (CSS_THEME).'),
+    '#default_value' => variable_get('componentize_css_group', CSS_THEME),
+  );
+
+  $form['asset_options']['componentize_css_weight'] = array(
+    '#type' => 'numberfield',
+    '#title' => t('CSS Weight'),
+    '#description' => t('CSS weight within group value.'),
+    '#default_value' => variable_get('componentize_css_weight', 0),
+  );
+
   $form['#submit'][] = 'componentize_regenerate';
 
   // $form['componentize_blocks'] = array(
