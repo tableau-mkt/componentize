@@ -69,6 +69,41 @@ function componentize_settings() {
     ),
   );
 
+  $form['asset_options'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('CSS/JS Group/Weight Options'),
+    '#collapsible' => TRUE,
+    '#collapsed' => TRUE,
+  );
+
+  $form['asset_options']['componentize_js_group'] = array(
+    '#type' => 'numberfield',
+    '#title' => t('JS Group'),
+    '#description' => t('JS group weight value.'),
+    '#default_value' => variable_get('componentize_js_group', JS_THEME),
+  );
+
+  $form['asset_options']['componentize_js_weight'] = array(
+    '#type' => 'numberfield',
+    '#title' => t('JS Weight'),
+    '#description' => t('JS weight within group value.'),
+    '#default_value' => variable_get('componentize_js_weight', 0),
+  );
+
+  $form['asset_options']['componentize_css_group'] = array(
+    '#type' => 'numberfield',
+    '#title' => t('CSS Group'),
+    '#description' => t('CSS group weight value.'),
+    '#default_value' => variable_get('componentize_css_group', CSS_THEME),
+  );
+
+  $form['asset_options']['componentize_css_weight'] = array(
+    '#type' => 'numberfield',
+    '#title' => t('CSS Weight'),
+    '#description' => t('CSS weight within group value.'),
+    '#default_value' => variable_get('componentize_css_weight', 0),
+  );
+
   $form['#submit'][] = 'componentize_regenerate';
 
   // $form['componentize_blocks'] = array(

@@ -58,13 +58,21 @@ function componentize_permission() {
 
 
 /**
- * Implments hook_preprocess_page().
+ * Implements hook_preprocess_page().
  */
 function componentize_preprocess_page(&$variables) {
+  // Skip admin pages.
+  if (path_is_admin(current_path())) {
+    return;
+  }
+
   // Compiled style sheet inclusion.
   $css = variable_get('componentize_css', COMPONENTIZE_COMPILED_ASSETS . '/' . COMPONENTIZE_COMPILED_CSS);
   if (file_exists($css)) {
-    drupal_add_css($css);
+    drupal_add_css($css, array(
+      'group' => variable_get('componentize_css_group', 0),
+      'weight' => variable_get('componentize_css_weight', 0),
+    ));
   }
   else {
     drupal_set_message(t('Unable to find and include compiled Components javascript.'), 'warning');
@@ -73,7 +81,10 @@ function componentize_preprocess_page(&$variables) {
   // Compiled javascript inclusion.
   $js = variable_get('componentize_js', COMPONENTIZE_COMPILED_ASSETS . '/' . COMPONENTIZE_COMPILED_JS);
   if (file_exists($js)) {
-    drupal_add_js($js);
+    drupal_add_js($js, array(
+      'group' => variable_get('componentize_js_group', 0),
+      'weight' => variable_get('componentize_js_weight', 0),
+    ));
   }
   else {
     drupal_set_message(t('Unable to find and include compiled Components styles.'), 'warning');
