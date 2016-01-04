@@ -6,6 +6,8 @@
 use Componentize\ComponentFactory;
 use Componentize\ParserKSSnode;
 
+require_once __DIR__ . '/componentize.helpers.inc';
+
 define('COMPONENTIZE_DIRECTORY', 'sites/all/components');
 define('COMPONENTIZE_PARTIALS', 'sites/all/components/_partials');
 define('COMPONENTIZE_COMPILED_ASSETS', 'sites/all/components/dist');
@@ -251,17 +253,4 @@ function componentize_single_modifier_validate($element, &$form_state, $form) {
   else {
     $form_state['values']['additional_settings']['component_modifier'] = '';
   }
-}
-
-
-/**
- * Convert a given string value to an array, by splitting on comma and
- * whitespace. No empty values will be returned.
- *
- * @param string $value
- *
- * @return array
- */
-function componentize_to_array($value) {
-  return preg_split('/[\s,]+/', $value, NULL, PREG_SPLIT_NO_EMPTY);
 }
