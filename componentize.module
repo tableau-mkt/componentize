@@ -81,6 +81,7 @@ function componentize_preprocess_page(&$variables) {
     drupal_add_css($css, array(
       'group' => variable_get('componentize_css_group', CSS_THEME),
       'weight' => variable_get('componentize_css_weight', 0),
+      'every_page' => variable_get('componentize_css_every_page', TRUE),
     ));
   }
   else {
@@ -93,6 +94,7 @@ function componentize_preprocess_page(&$variables) {
     drupal_add_js($js, array(
       'group' => variable_get('componentize_js_group', JS_THEME),
       'weight' => variable_get('componentize_js_weight', 0),
+      'every_page' => variable_get('componentize_js_every_page', TRUE),
     ));
   }
   else {
