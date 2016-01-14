@@ -118,12 +118,12 @@ function componentize_settings() {
     '#default_value' => variable_get('componentize_js_weight', 0),
   );
 
-  $form['asset_options']['componentize_js_every_page'] = array(
-    '#type' => 'checkbox',
-    '#title' => t('JS on every page'),
-    '#description' => t('Bundle/aggregate on every page.'),
-    '#default_value' => variable_get('componentize_js_every_page', TRUE),
-  );
+  // $form['asset_options']['componentize_js_every_page'] = array(
+  //   '#type' => 'checkbox',
+  //   '#title' => t('JS on every page'),
+  //   '#description' => t('Bundle/aggregate on every page.'),
+  //   '#default_value' => variable_get('componentize_js_every_page', TRUE),
+  // );
 
   $form['asset_options']['componentize_css_group'] = array(
     '#type' => 'numberfield',
@@ -139,12 +139,12 @@ function componentize_settings() {
     '#default_value' => variable_get('componentize_css_weight', 0),
   );
 
-  $form['asset_options']['componentize_css_every_page'] = array(
-    '#type' => 'checkbox',
-    '#title' => t('CSS on every page'),
-    '#description' => t('Bundle/aggregate on every page.'),
-    '#default_value' => variable_get('componentize_css_every_page', TRUE),
-  );
+  // $form['asset_options']['componentize_css_every_page'] = array(
+  //   '#type' => 'checkbox',
+  //   '#title' => t('CSS on every page'),
+  //   '#description' => t('Bundle/aggregate on every page.'),
+  //   '#default_value' => variable_get('componentize_css_every_page', TRUE),
+  // );
 
   $form['#submit'][] = 'componentize_regenerate';
 
