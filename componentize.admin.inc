@@ -9,6 +9,7 @@
 function componentize_settings() {
   $css_default = COMPONENTIZE_COMPILED_ASSETS . '/' . COMPONENTIZE_COMPILED_CSS;
   $js_default = COMPONENTIZE_COMPILED_ASSETS . '/' . COMPONENTIZE_COMPILED_JS;
+  $num_field_type = module_exists('elements') ? 'numberfield' : 'textfield';
 
   $form = array(
     '#prefix' => t('Saving this form will re-scan and regenerate stored component records.'),
@@ -105,14 +106,14 @@ function componentize_settings() {
   );
 
   $form['asset_options']['componentize_js_group'] = array(
-    '#type' => 'numberfield',
+    '#type' => $num_field_type,
     '#title' => t('JS Group'),
     '#description' => t('JS group weight value. Defaults to 100 (JS_THEME).'),
     '#default_value' => variable_get('componentize_js_group', JS_THEME),
   );
 
   $form['asset_options']['componentize_js_weight'] = array(
-    '#type' => 'numberfield',
+    '#type' => $num_field_type,
     '#title' => t('JS Weight'),
     '#description' => t('JS weight within group value.'),
     '#default_value' => variable_get('componentize_js_weight', 0),
@@ -126,14 +127,14 @@ function componentize_settings() {
   // );
 
   $form['asset_options']['componentize_css_group'] = array(
-    '#type' => 'numberfield',
+    '#type' => $num_field_type,
     '#title' => t('CSS Group'),
     '#description' => t('CSS group weight value. Defaults to 100 (CSS_THEME).'),
     '#default_value' => variable_get('componentize_css_group', CSS_THEME),
   );
 
   $form['asset_options']['componentize_css_weight'] = array(
-    '#type' => 'numberfield',
+    '#type' => $num_field_type,
     '#title' => t('CSS Weight'),
     '#description' => t('CSS weight within group value.'),
     '#default_value' => variable_get('componentize_css_weight', 0),
