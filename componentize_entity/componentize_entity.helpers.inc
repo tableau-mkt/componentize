@@ -187,10 +187,25 @@ function _componentize_entity_get_fields($build) {
 
       // Build out template data.
       $template_var = $settings['componentize_entity_variable_name'];
-      $vars[$template_var . '_label'] = $field['label'];
-      $vars[$template_var] = componentize_entity_render_field(
-        $name, $entity_type, $entity, $view_mode, $items, $settings
-      );
+
+      // Keep an array of unique keys to cross reference for duplicates.
+      $template_vars[] = $template_var;
+      $keys = _componentize_unflatten_variable($vars, $template_vars, $template_var);
+      $temp = &$vars;
+      $i = 0;
+      $count = count($keys);
+
+      foreach($keys as $key) {
+        if (++$i === $count) {
+          $temp[$key . '_label'] = $field['label'];
+          $temp[$key] = componentize_entity_render_field(
+            $name, $entity_type, $entity, $view_mode, $items, $settings
+          );
+          break;
+        }
+
+        $temp = &$temp[$key];
+      }
     }
   }
 

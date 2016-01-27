@@ -209,7 +209,7 @@ function _componentize_entity_generate_variable_form(&$form, $component, $displa
       '#type' => 'select',
       '#options' => array_merge(
         array('' => t('- None -')),
-        drupal_map_assoc($component->getVariables())
+        $component->getVariables()
       ),
       '#default_value' => $display['componentize_entity_variable_name'],
     );
