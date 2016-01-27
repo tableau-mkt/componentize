@@ -17,7 +17,7 @@ function _componentize_flatten_variables($vars, $parent = '') {
     return NULL;
   }
 
-  forEach ($vars as $name => $item) {
+  foreach ($vars as $name => $item) {
     $key = $parent . $name;
 
     if (is_array($item)) {
