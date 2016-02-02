@@ -49,7 +49,7 @@ function hook_componentize_field_types_info_alter($handlers) {
  *   Settings record to be stored.
  * @param $form_state
  */
-function hook_entity_view_mode_component($record, &$form_state) {
+function hook_entity_view_mode_component_save($record, &$form_state) {
   if ($record->bundle === 'my_bundle') {
     $record->modifier = 'force-this-modifier';
   }
