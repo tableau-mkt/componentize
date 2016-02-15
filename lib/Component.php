@@ -86,7 +86,8 @@ class Component {
     // Exit if the render function is invalid.
     if (gettype($renderer) !== 'object') {
       drupal_set_message(t(
-        'Problem parsing template, unable to render via component.'
+        'Problem parsing template, unable to render via component. See: @component',
+        array('@component' => $this->name)
       ), 'error');
       return FALSE;
     }
@@ -328,20 +329,21 @@ class Component {
    * @todo Retrieve as entities.
    */
   private function retrieve() {
-    $data = &drupal_static(__FUNCTION__ . $this->namespace);
-    if ($data) return;
+    $component_data = &drupal_static(__FUNCTION__ . $this->namespace);
+    if ($component_data) return FALSE;
 
     switch ($this->configs['storage']) {
       case 'variable':
-        $data = variable_get('componentize_' . $this->namespace);
+        $component_data = variable_get('componentize_' . $this->namespace);
         break;
 
       case 'cache':
-        $data = cache_get('componentize_' . $this->namespace, 'cache');
+        $component_data = cache_get('componentize_' . $this->namespace, 'cache');
         break;
     }
+    if (!$component_data) return FALSE;
 
-    $this->set($data);
+    $this->set($component_data->data);
   }
 
 
