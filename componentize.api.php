@@ -68,3 +68,36 @@ function hook_componentize_render_alter(&$component, &$data) {
   }
 }
 
+/**
+ * Add a custom handlebars helper function
+ *
+ * @return array
+ *   Associative array of helper name and custom helper function
+ *
+ * @see https://github.com/zordius/lightncandy#custom-helper
+ */
+function hook_componentize_helpers_info() {
+  $helpers = array(
+    "helper-name" => "my_module_helper_function",
+  );
+
+  return $helpers;
+}
+
+
+/**
+ * Example custom handlebars helper function.
+ *
+ * @param array $context
+ *   Array of the data passed into the helper.
+ * @param array $options
+ *   Options array passed into the helper.
+ * @return array
+ *   The final output to go to the template.
+ *
+ * @see https://github.com/zordius/lightncandy#custom-helper
+ */
+function my_module_helper_function($context, $options) {
+  // Helper to render an array as HTML attributes.
+  return drupal_attributes($context[0]);
+}

@@ -22,22 +22,6 @@ class ComponentField {
   }
 
   /**
-   * Carefullly collect all data from field.
-   *
-   * @param array $item
-   * @param array $fields
-   *
-   * @return array
-   */
-  protected function collectProperties($item, $fields) {
-    $returns = array();
-    foreach ($fields as $field) {
-      $returns[$field] = isset($item[$field]) ? $item[$field] : '';
-    }
-    return $returns;
-  }
-
-  /**
    * Plugable: obtain variables from field value(s).  Allows more complex fields.
    *
    * @param array $item

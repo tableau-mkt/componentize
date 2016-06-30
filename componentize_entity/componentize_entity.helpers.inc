@@ -1,7 +1,9 @@
 <?php
 /**
- * @file Helper functions: Componentize! Fields.
+ * @file Helper functions: Componentize! Entity.
  */
+
+define('COMPONENTIZE_EVM_TABLE', 'componentize_entity_entity_view_mode');
 
 require_once drupal_get_path('module', 'ctools') . '/includes/export.inc';
 
@@ -186,7 +188,7 @@ function _componentize_entity_get_fields($build) {
       $items = field_get_items($entity_type, $entity, $name);
 
       // Build out template data.
-      $template_var = $settings['componentize_entity_variable_name'];
+      $template_var = $settings[COMPONENTIZE_TEMPLATE_VAR];
 
       // Keep an array of unique keys to cross reference for duplicates.
       $template_vars[] = $template_var;
@@ -227,16 +229,112 @@ function _componentize_entity_get_fields($build) {
 function _componentize_entity_get_field_settings($field, $view_mode) {
   $display = $field['display'];
 
-  if (isset($display[$view_mode]) &&
-      isset($display[$view_mode]['settings']['componentize_entity_variable_name']) &&
-      !empty($display[$view_mode]['settings']['componentize_entity_variable_name'])) {
+  // Return view mode settings.
+  if (isset($display[$view_mode]) && !empty($display[$view_mode]['settings'][COMPONENTIZE_TEMPLATE_VAR])) {
     return $display[$view_mode]['settings'];
   }
-
-  if (isset($display['default']['settings']['componentize_entity_variable_name']) &&
-      !empty($display['default']['settings']['componentize_entity_variable_name'])) {
+  // Return default settings.
+  if (!empty($display['default']['settings'][COMPONENTIZE_TEMPLATE_VAR])) {
     return $display['default']['settings'];
   }
 
   return FALSE;
+}
+
+
+/**
+ * Build field settings summary shared function.
+ *
+ * @param string &$summary
+ * @param array $field_settings
+ */
+function _componentize_entity_generate_summary(&$summary, $field_settings) {
+  if (!empty($summary)) {
+    $summary .= '<br />';
+  }
+
+  // Display settings.
+  if (!empty($field_settings[COMPONENTIZE_TEMPLATE_VAR])) {
+    $summary .= t('Map to "@variable" template variable', array(
+      '@variable' => $field_settings[COMPONENTIZE_TEMPLATE_VAR],
+    ));
+    $summary .= '<br />';
+
+    if ($field_settings[COMPONENTIZE_TEMPLATE_HANDLER]) {
+      $summary .= t('Using field handler for template values');
+    }
+    else {
+      $summary .= t('Rendered prior to template');
+    }
+  }
+  else {
+    $summary .= t('No template variable mapped yet!');
+  }
+}
+
+
+/**
+ * Add variable choices for registered component.
+ *
+ * @todo Set componentize_fieldgroup module weight higher and
+ *       run the duplicate form element check the other way.
+ *
+ * @param array &$form
+ * @param string $component
+ * @param array $display
+ */
+function _componentize_entity_generate_variable_form(&$form, $component, $display) {
+  // Allow other modules to borrow this.
+  if (!isset($form[COMPONENTIZE_TEMPLATE_VAR])) {
+    // Add variables.
+    $form[COMPONENTIZE_TEMPLATE_VAR] = array(
+      '#title' => t('Component Variable'),
+      '#type' => 'select',
+      '#options' => array_merge(
+        array('' => t('- None -')),
+        $component->getVariables()
+      ),
+      '#default_value' => $display[COMPONENTIZE_TEMPLATE_VAR],
+    );
+    $form[COMPONENTIZE_TEMPLATE_HANDLER] = array(
+      '#title' => t('Data through handler'),
+      '#type' => 'checkbox',
+      '#description' => t('Skip Drupal rendering and send data to template via handler plugin.'),
+      '#default_value' => $display[COMPONENTIZE_TEMPLATE_HANDLER],
+    );
+  }
+}
+
+
+/**
+ * Remove existing settings for disabled view modes.
+ *
+ * @param array &$form
+ * @param array $settings
+ */
+function _componentize_entity_remove_disabled_evm(&$form, $settings) {
+  if (empty($settings)) {
+    return FALSE;
+  }
+
+  foreach ($settings as $view_mode => $active) {
+    if ($active) {
+      continue;
+    }
+
+    $remove_id = implode('|', array(
+      $form['#entity_type'],
+      $form['#bundle'],
+      $view_mode
+    ));
+
+    $query = 'SELECT id from {' . COMPONENTIZE_EVM_TABLE . '} WHERE id = :id';
+    $exists = db_query($query, array(':id' => $remove_id))->rowCount();
+
+    if ($exists) {
+      db_delete(COMPONENTIZE_EVM_TABLE)
+        ->condition('id', $remove_id)
+        ->execute();
+    }
+  }
 }

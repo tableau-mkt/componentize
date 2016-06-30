@@ -62,9 +62,8 @@ function componentize_entity_componentize_field_types_info() {
     'number_decimal' =>     'Componentize\\ComponentFieldNumber',
     'number_unformatted' => 'Componentize\\ComponentFieldNumber',
     'file' =>               'Componentize\\ComponentFieldFile',
-    'image' =>              'Componentize\\ComponentFieldImage',
+    'image' =>              'Componentize\\ComponentFieldFile',
     'link_field' =>         'Componentize\\ComponentFieldLink',
-    'datetime' =>           'Componentize\\ComponentFieldDate',
   );
 }
 
@@ -126,21 +125,7 @@ function componentize_entity_entity_view_mode_save($form, &$form_state) {
   }
 
   // Remove existing settings for disabled view modes.
-  if (!empty($settings['modes']['view_modes_custom'])) {
-    foreach ($settings['modes']['view_modes_custom'] as $view_mode => $active) {
-      if (!$active) {
-        $remove_id = implode('|', array($form['#entity_type'], $form['#bundle'], $view_mode));
-        $exists = db_query('select id from {componentize_entity_entity_view_mode}
-        where id = :id', array(':id' => $remove_id))->rowCount();
-
-        if ($exists) {
-          db_delete('componentize_entity_entity_view_mode')
-            ->condition('id', $remove_id)
-            ->execute();
-        }
-      }
-    }
-  }
+  _componentize_entity_remove_disabled_evm($form, $settings['modes']['view_modes_custom']);
 
   // Build record to save from meta data and settings.
   $record = (object) array(
@@ -182,45 +167,13 @@ function componentize_entity_field_formatter_info_alter(&$info) {
     // Field type is registered.
     if (array_intersect($formatter['field types'], $types) && gettype($info[$format]['settings']) === 'array') {
       $info[$format]['settings'] += array(
-        'componentize_entity_variable_name' => '',
-        'componentize_entity_via_handler' => '',
+        COMPONENTIZE_TEMPLATE_VAR => '',
+        COMPONENTIZE_TEMPLATE_HANDLER => '',
       );
     }
   }
 }
 
-
-/**
- * Add variable choices for registered component.
- *
- * @todo Set componentize_fieldgroup module weight higher and
- *       run the duplicate form element check the other way.
- *
- * @param array &$form
- * @param string $component
- * @param array $display
- */
-function _componentize_entity_generate_variable_form(&$form, $component, $display) {
-  // Allow other modules to borrow this.
-  if (!isset($form['componentize_entity_variable_name'])) {
-    // Add variables.
-    $form['componentize_entity_variable_name'] = array(
-      '#title' => t('Component Variable'),
-      '#type' => 'select',
-      '#options' => array_merge(
-        array('' => t('- None -')),
-        $component->getVariables()
-      ),
-      '#default_value' => $display['componentize_entity_variable_name'],
-    );
-    $form['componentize_entity_via_handler'] = array(
-      '#title' => t('Data through handler'),
-      '#type' => 'checkbox',
-      '#description' => t('Skip Drupal rendering and send data to template via handler plugin.'),
-      '#default_value' => $display['componentize_entity_via_handler'],
-    );
-  }
-}
 
 /**
  * Implements hook_field_formatter_settings_form_alter().
@@ -252,16 +205,6 @@ function componentize_entity_field_formatter_settings_form_alter(&$settings_form
 
 
 /**
- * Validation for text-input variable settings.
- */
-// function componentize_fieldgroup_validate_variable($element, &$form_state, $form) {
-//   if (!ctype_alnum($element['#value'])) {
-//     form_error($element, t('This field must be alphanumeric.'));
-//   }
-// }
-
-
-/**
  * Implements hook_field_formatter_settings_summary_alter().
  *
  * Display field mapping settings to admins.
@@ -284,64 +227,6 @@ function componentize_entity_field_formatter_settings_summary_alter(&$summary, $
     }
   }
 }
-
-
-/**
- * Build field settings summary shared function.
- *
- * @param string &$summary
- * @param array $field_settings
- */
-function _componentize_entity_generate_summary(&$summary, $field_settings) {
-  if (!empty($summary)) {
-    $summary .= '<br />';
-  }
-
-  // Display settings.
-  if (isset($field_settings['componentize_entity_variable_name']) && !empty($field_settings['componentize_entity_variable_name'])) {
-    $variable_name = $field_settings['componentize_entity_variable_name'];
-    $via_handler = $field_settings['componentize_entity_via_handler'];
-
-    $summary .= t('Map to "@variable" template variable', array(
-      '@variable' => $variable_name,
-    ));
-    $summary .= '<br />';
-
-    if ($via_handler) {
-      $summary .= t('Using field handler for template values');
-    }
-    else {
-      $summary .= t('Rendered prior to template');
-    }
-  }
-  else {
-    $summary .= t('No template variable mapped yet!');
-  }
-}
-
-
-/**
- * Implements hook_entity_view().
- *
- * @param array $entity
- * @param string $type
- * @param string $view_mode
- * @param string $langcode
- */
-// function componentize_entity_entity_view($entity, $type, $view_mode, $langcode) {
-// }
-
-
-/**
- * Pre render registered within hook_entity_view_alter(). Currently unnecessary.
- *
- * @param array $element
- *
- * @return array
- */
-// function componentize_entity_entity_view_pre_render($element) {
-//   return $element;
-// }
 
 
 /**
@@ -402,7 +287,9 @@ function theme_entity_view_mode_component($variables) {
   // Warn about parsing failures.
   $template = $component->getTemplate();
   return !empty($template) ? $component->render($element['#componentize_entity']) :
-      t('Component template empty or parse error.');
+      t('Component template empty or parse error. Component: @component', array(
+        '@component' => $element['#componentize_component']
+      ));
 }
 
 
@@ -429,7 +316,7 @@ function componentize_entity_render_field($field_name, $entity_type, $entity, $v
   $handler        = FALSE;
 
   // Use component field handler. See: componentize_entity.api.php
-  if ($settings && isset($settings['componentize_entity_via_handler']) && $settings['componentize_entity_via_handler'] !== 0) {
+  if ($settings && isset($settings[COMPONENTIZE_TEMPLATE_HANDLER]) && $settings[COMPONENTIZE_TEMPLATE_HANDLER] !== 0) {
     $fields_types = componentize_entity_field_types();
     $class_name = isset($fields_types[$type]) ? $fields_types[$type] : $fields_types['default'];
 

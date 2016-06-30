@@ -3,8 +3,10 @@
  * @file Render content fieldgroups through a component.
  */
 
-use Componentize\ComponentFactory;
+define('COMPONENTIZE_TEMPLATE_VAR', 'componentize_entity_variable_name');
+define('COMPONENTIZE_TEMPLATE_HANDLER', 'componentize_entity_via_handler');
 
+use Componentize\ComponentFactory;
 
 /**
  * Implements hook_ctools_plugin_api().
@@ -148,7 +150,7 @@ function _componentize_fieldgroup_get_fields($element, $group) {
         $items = field_get_items($group->entity_type, $entity, $name);
 
         // Prepare field for template.
-        $template_var = $settings['componentize_entity_variable_name'];
+        $template_var = $settings[COMPONENTIZE_TEMPLATE_VAR];
 
         // Keep an array of unique keys to cross reference for duplicates.
         $template_vars[] = $template_var;
@@ -188,7 +190,7 @@ function componentize_fieldgroup_single_modifier_validate($element, &$form_state
     if (gettype($settings['component_modifier']) === 'array') {
       // Update the raw input.
       $form_state['values']['fields'][$group_name]['format_settings']['settings']['instance_settings']['component_modifier'] =
-        $settings['component_modifier'][$settings['component']];
+          $settings['component_modifier'][$settings['component']];
     }
   }
 }
