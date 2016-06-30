@@ -30,7 +30,7 @@ class ComponentFactory {
     $configs = $configs + array(
       'path' => variable_get('componentize_directory', COMPONENTIZE_DIRECTORY),
       'partials' => variable_get('componentize_partials', COMPONENTIZE_PARTIALS),
-      'storage' => variable_get('componentize_storage', 1),
+      'storage' => variable_get('componentize_storage', 'none'),
       'module' => 'componentize',
       'reset' => FALSE,
     );

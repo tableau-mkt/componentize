@@ -17,11 +17,7 @@ class ComponentFieldText extends ComponentField {
    *   Variable data to send to template.
    */
   public function getValues($item) {
-    $returns = $this->collectProperties($item, array(
-      'safe_value'
-    ));
-
-    return $returns['safe_value'];
+    return isset($item['safe_value']) ? $item['safe_value'] : '';
   }
 
 }

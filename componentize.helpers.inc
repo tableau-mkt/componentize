@@ -98,6 +98,6 @@ function _componentize_unflatten_variable($vars, $keys, $var) {
  *
  * @return array
  */
-function componentize_to_array($value) {
+function _componentize_to_array($value) {
   return preg_split('/[\s,]+/', $value, NULL, PREG_SPLIT_NO_EMPTY);
 }

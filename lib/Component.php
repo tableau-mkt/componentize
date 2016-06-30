@@ -78,6 +78,7 @@ class Component {
         'fileext' => array(
           '.hbs',
         ),
+        'helpers' => componentize_helpers_info(),
       ));
       file_unmanaged_save_data($compiled, $filepath, FILE_EXISTS_REPLACE);
     }
@@ -86,7 +87,9 @@ class Component {
     // Exit if the render function is invalid.
     if (gettype($renderer) !== 'object') {
       drupal_set_message(t(
-        'Problem parsing template, unable to render via component.'
+        'Problem parsing template, unable to render via component. See: @component', array(
+          '@component' => $this->name
+        )
       ), 'error');
       return FALSE;
     }
@@ -328,20 +331,20 @@ class Component {
    * @todo Retrieve as entities.
    */
   private function retrieve() {
+    // Handle single request cache.
     $data = &drupal_static(__FUNCTION__ . $this->namespace);
     if ($data) return;
 
+    // Grab data from storage.
     switch ($this->configs['storage']) {
       case 'variable':
         $data = variable_get('componentize_' . $this->namespace);
         break;
 
       case 'cache':
-        $data = cache_get('componentize_' . $this->namespace, 'cache');
+        $data = cache_get('componentize_' . $this->namespace);
         break;
     }
-
-    $this->set($data);
   }
 
 

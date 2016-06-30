@@ -16,7 +16,7 @@ class ComponentFieldLink extends ComponentField {
    * @return array
    *   Variable data to send to template.
    */
-  public function getValues($item) {
+  public function getValues(&$item) {
     $item['href'] = $item['display_url'];
     return $item;
   }

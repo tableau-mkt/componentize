@@ -61,6 +61,8 @@ function componentize_permission() {
 
 /**
  * Implements hook_preprocess_page().
+ *
+ * @todo Move to hook_page_build(&$page).
  */
 function componentize_preprocess_page(&$variables) {
   // Skip excluded themes.
@@ -71,7 +73,7 @@ function componentize_preprocess_page(&$variables) {
 
   // Skip excluded paths.
   $alias = drupal_get_path_alias();
-  $exclude_paths = componentize_to_array(variable_get('componentize_exclude_paths', ''));
+  $exclude_paths = _componentize_to_array(variable_get('componentize_exclude_paths', ''));
   if (!empty($exclude_paths)
       && drupal_match_path($alias, implode("\n", $exclude_paths))) {
     return;
@@ -108,10 +110,8 @@ function componentize_preprocess_page(&$variables) {
 /**
  * Provide list of components, via parsing directory or stashed variable.
  *
- * @todo Nested components (accordian + accordian item).
- *
  * @param boolean $shallow
- *   Just return a list without full objects (optional).
+ *   Just a list, no objects.
  *
  * @return array
  */
@@ -132,7 +132,7 @@ function componentize_list($shallow = FALSE, $reset = FALSE) {
       break;
 
     case 'cache':
-      $list = cache_get('componentize_list', array());
+      $list = cache_get('componentize_list') ?: array();
       break;
   }
 
@@ -155,17 +155,18 @@ function componentize_list($shallow = FALSE, $reset = FALSE) {
 
   // Keep simple when possible.
   if (!$shallow) {
-    // Build component objects.
-    $list_full = array();
-    foreach ($list as $key => $component) {
-      $list_full[$component] = ComponentFactory::create($component, array(), TRUE);
+    // Build associative list of component objects.
+    $obj_list = array();
+    foreach ($list as $component) {
+      // Generate object.
+      $obj_list[$component] = ComponentFactory::create($component, array(), TRUE);
       // Clear storage and compiled templates.
       if ($reset) {
-        $list_full[$component]->remove();
+        $obj_list[$component]->remove();
       }
     }
     // Allows static.
-    $list = $list_full;
+    $list = $obj_list;
   }
 
   // Allow adding custom components.
@@ -255,4 +256,23 @@ function componentize_single_modifier_validate($element, &$form_state, $form) {
   else {
     $form_state['values']['additional_settings']['component_modifier'] = '';
   }
+}
+
+
+/**
+ * Returns information about registered handlebars helpers.
+ *
+ * @return array
+ *   An associative array containing registered information for all helpers.
+ *
+ * @see hook_componentize_helpers_info()
+ */
+function componentize_helpers_info() {
+  $helpers = array();
+
+  // Get a combiled array of all arrays returned by componentize_helpers_info
+  // implementations.
+  $helpers = module_invoke_all('componentize_helpers_info');
+
+  return $helpers;
 }

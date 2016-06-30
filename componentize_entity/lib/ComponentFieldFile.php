@@ -16,15 +16,8 @@ class ComponentFieldFile extends ComponentField {
    * @return array
    *   Variable data to send to template.
    */
-  public function getValues($item) {
-    return $this->collectProperties($item, array(
-      'uri',
-      'filename',
-      'filesize',
-      'mimetype',
-      'description'
-    )) + array(
-      'url' => file_create_url($item['uri']),
-    );
+  public function getValues(&$item) {
+    $item['url'] = file_create_url($item['uri']);
+    return $item;
   }
 }
