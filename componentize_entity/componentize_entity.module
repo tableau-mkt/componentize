@@ -402,7 +402,7 @@ function theme_entity_view_mode_component($variables) {
   // Warn about parsing failures.
   $template = $component->getTemplate();
   return !empty($template) ? $component->render($element['#componentize_entity']) :
-      t('Component template empty or parse error.');
+      t('Component template empty or parse error. Component: @component', array('@component' => $element['#componentize_component']));
 }
 
 
