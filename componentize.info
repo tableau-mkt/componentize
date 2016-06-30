@@ -3,10 +3,3 @@ description = Integrate your well-structured style guide with Drupal.
 core = 7.x
 dependencies[] = composer_manager
 configure = admin/config/componentize
-
-; Information added by Drupal.org packaging script on 2016-02-02
-version = "7.x-1.0-alpha7+6-dev"
-core = "7.x"
-project = "componentize"
-datestamp = "1454456660"
-
